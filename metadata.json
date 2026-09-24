@@ -1,0 +1,6 @@
+{
+  "name": "Sistema de Controle de Marés - Areia Branca & Macau",
+  "description": "Painel náutico de monitoramento de marés DHN 2026, curva harmônica de 48 horas, carta náutica georreferenciada e meteorologia em tempo real para Areia Branca e Macau - RN.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

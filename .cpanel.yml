@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - /bin/echo "Deploy sincronizado com sucesso!"
+

@@ -1,0 +1,81 @@
+# 1. Permissões de Acesso e Índices
+Options -Indexes +FollowSymLinks
+DirectoryIndex production/index.html dist/index.html index.html
+
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>
+
+# 2. Tipos MIME Corretos
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+  AddType text/javascript .js
+  AddType text/css .css
+  AddType application/json .json
+  AddType application/manifest+json .webmanifest
+  AddType image/svg+xml .svg .svgz
+  AddType image/x-icon .ico
+  AddType image/png .png
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+</IfModule>
+
+# 3. Regras de Roteamento Inteligente (Suporte a Deploy Direto e Subpastas production/dist)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # A. Redirecionamento transparente de assets e arquivos estáticos para a pasta production/
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI} !-f
+  RewriteRule ^assets/(.*)$ production/assets/$1 [L]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(favicon\.ico|logo\.svg|manifest\.webmanifest|manifest\.json|sw\.js|apple-touch-icon\.png|icon-192\.png|icon-512\.png|og-image\.png|favicon-32x32\.png|favicon\.png)$ production/$1 [L]
+
+  # B. Servir arquivos físicos existentes diretamente
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # C. Não reescrever requisições de arquivos inexistentes com extensão conhecida para HTML (evita erro de MIME type)
+  RewriteCond %{REQUEST_URI} \.(js|mjs|css|png|jpg|jpeg|gif|svg|ico|webmanifest|json|woff|woff2)$ [NC]
+  RewriteRule ^ - [R=404,L]
+
+  # D. Servir o index.html de produção
+  RewriteRule ^$ production/index.html [L]
+  RewriteRule ^index\.html$ production/index.html [L]
+
+  # E. Fallback SPA
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ production/index.html [L]
+</IfModule>
+
+# 4. Compressão GZIP / Deflate
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# 5. Controle de Cache e Headers
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm|json|webmanifest)$">
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  <FilesMatch "\.(js|mjs)$">
+    Header set Content-Type "application/javascript; charset=utf-8"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType application/manifest+json "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>
