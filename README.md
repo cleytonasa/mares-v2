@@ -17,10 +17,9 @@
 - **🌊 Monitoramento em Tempo Real:** Cálculo dinâmico do nível da maré atual, tendência (enchente/vazante), taxa de variação (cm/h) e contagem regressiva para os próximos estofos.
 - **📊 Curva Harmônica & Gráfico Interativo:** Visualização de 24h/48h com interpolação senoidal náutica precisa, destacando preamares e baixamares.
 - **📅 Tábua Oficial DHN 2026:** Consulta completa dos 365 dias do ano, identificando fases lunares, marés de sizígia e quadratura.
-- **🗺️ Carta Náutica & Mapa Satélite (Leaflet):** Georreferenciamento de pontos de interesse (Terminal Salineiro TERMISA, Bóias, Barra de Macau) com suporte a GPS e geolocalização do operador.
+- **🗺️ Carta Náutica & Mapa Satélite (Leaflet):** Georreferenciamento de pontos de interesse (Terminal Salineiro Intersal, Bóias, Barra de Macau) com suporte a GPS e geolocalização do operador.
 - **💨 Meteorologia & Condições Marítimas:** Integração em tempo real com dados de ventos (alísios e rajadas), pressão atmosférica, temperatura e previsão semanal.
 - **🚢 Gestão de Embarques INTERSAL:** Painel analítico de line-up de navios, movimentação de sal (tonelagens), gráficos de produtividade e histórico operacional.
-- **📲 Gerador de Boletim WhatsApp:** Criação automatizada de informativos operacionais em texto formatado para envio com 1 clique aos comandantes e equipes de terra.
 - **🔔 Central de Alertas:** Configuração de limiares operacionais de maré crítica, calado seguro e notificações no dispositivo.
 - **📱 Suporte PWA Offline:** Instalável no smartphone (Android/iOS) e desktop, com service worker ativo para respostas ultrarrápidas.
 
