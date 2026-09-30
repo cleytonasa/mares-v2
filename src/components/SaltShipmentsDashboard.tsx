@@ -45,7 +45,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
   const [copiedNotification, setCopiedNotification] = useState<boolean>(false);
   const [hoveredMonth, setHoveredMonth] = useState<number | null>(null);
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
-  const [timelineMonth, setTimelineMonth] = useState<number>(9); // Default to September 2026 (current active line-up month)
+  const [timelineMonth, setTimelineMonth] = useState<number>(10); // Default to October 2026 (current active line-up month with vessel in operation)
 
   // Active Operating Vessel & Next Planned Vessel
   const activeOperatingVessel = useMemo(() => SALT_SHIPMENTS_2026.find((v) => v.status === 'Em operação'), []);
