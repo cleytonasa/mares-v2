@@ -12,6 +12,7 @@ import {
   Copy,
   Factory,
   FileSpreadsheet,
+  FileText,
   Globe2,
   Navigation,
   PieChart,
@@ -227,6 +228,16 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                   <Clock className="w-2.5 h-2.5 text-cyan-400" />
                   Atualizado: {LINEUP_LAST_UPDATED}
                 </span>
+                <a
+                  href="/programacao-navios.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2 py-0.5 rounded-full bg-blue-950/80 hover:bg-blue-900/80 text-blue-300 border border-blue-500/40 text-[10px] font-semibold flex items-center gap-1 transition-all hover:scale-105"
+                  title="Abrir PDF Oficial emitido pela Intersal"
+                >
+                  <FileText className="w-2.5 h-2.5 text-blue-400" />
+                  PDF Oficial Intersal
+                </a>
               </div>
               <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight mt-1 flex items-center gap-2">
                 Painel de Embarque (Line-Up)

@@ -1,0 +1,69 @@
+name: Monitorar Line-Up Intersal
+
+on:
+  schedule:
+    # Segunda a sexta: 06:00, 09:00, 12:00, 15:00 e 18:00 (Horário de Brasília / UTC-3 -> 09, 12, 15, 18, 21 UTC)
+    - cron: '0 9,12,15,18,21 * * 1-5'
+    # Finais de semana: 09:00 e 15:00 (Horário de Brasília -> 12 e 18 UTC)
+    - cron: '0 12,18 * * 0,6'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Forçar atualização mesmo sem mudança no cabeçalho'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-sync:
+    name: Checar e Atualizar Line-Up
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Instalar Dependências
+        run: npm install
+
+      - name: Executar Sincronizador Intersal
+        id: sync
+        run: |
+          if [ "${{ inputs.force }}" = "true" ]; then
+            node scripts/sync-intersal.js --force
+          else
+            node scripts/sync-intersal.js
+          fi
+
+      - name: Verificar se Houve Alterações
+        id: git-check
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Foram detectadas alterações nos dados do line-up."
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "Nenhuma alteração nos dados do line-up."
+          fi
+
+      - name: Fazer Commit e Push Automático
+        if: steps.git-check.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Obter data da atualização registrada pelo sincronizador
+          UPDATE_DATE=$(node -e "try { console.log(require('./scripts/last_sync.json').lineupLastUpdated); } catch(e) { console.log(''); }")
+          
+          git add src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf
+          git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE)"
+          git push

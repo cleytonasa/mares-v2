@@ -4,11 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev": "vite",
     "build": "vite build && mkdir -p assets production/assets && cp -rf dist/assets/* assets/ && cp -rf dist/* production/ && cp dist/assets/* production/assets/ && cp dist/.htaccess production/.htaccess && cp public/logo.svg assets/logo.svg && cp public/logo.svg production/logo.svg && tar -czvf dist.tar.gz -C dist .",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit --skipLibCheck"
+    "lint": "tsc --noEmit --skipLibCheck",
+    "sync:lineup": "node scripts/sync-intersal.js",
+    "sync:lineup:force": "node scripts/sync-intersal.js --force"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
@@ -27,6 +29,7 @@
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "pdf-parse": "^2.4.5",
     "sharp": "^0.35.3",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
