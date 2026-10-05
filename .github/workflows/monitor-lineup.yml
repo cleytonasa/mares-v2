@@ -1,5 +1,4 @@
 name: Monitorar Line-Up Intersal
-
 on:
   schedule:
     # Segunda a sexta: 06:00, 09:00, 12:00, 15:00 e 18:00 (Horário de Brasília / UTC-3 -> 09, 12, 15, 18, 21 UTC)
@@ -21,13 +20,12 @@ jobs:
   check-and-sync:
     name: Checar e Atualizar Line-Up
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout do Repositório
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: 'npm'
@@ -67,3 +65,4 @@ jobs:
           git add src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf
           git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE)"
           git push
+
