@@ -53,6 +53,12 @@ jobs:
             echo "Nenhuma alteração nos dados do line-up."
           fi
 
+      - name: Compilar Projeto (Build de Produção)
+        if: steps.git-check.outputs.has_changes == 'true'
+        run: |
+          echo "Recompilando aplicação com os novos dados do Line-Up..."
+          npm run build
+
       - name: Fazer Commit e Push Automático
         if: steps.git-check.outputs.has_changes == 'true'
         run: |
@@ -62,7 +68,7 @@ jobs:
           # Obter data da atualização registrada pelo sincronizador
           UPDATE_DATE=$(node -e "try { console.log(require('./scripts/last_sync.json').lineupLastUpdated); } catch(e) { console.log(''); }")
           
-          git add src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf
+          git add src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf production dist assets dist.tar.gz
           git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE)"
           git push
 

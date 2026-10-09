@@ -1,5 +1,8 @@
 ---
 deployment:
   tasks:
-    - /bin/echo "Deploy sincronizado com sucesso!"
+    - export DEPLOYPATH=/home/cleyt730/public_html/
+    - /bin/cp -rf production/* $DEPLOYPATH
+    - /bin/cp -f .htaccess $DEPLOYPATH
+    - /bin/echo "Deploy do Line-Up sincronizado com sucesso no cPanel!"
 
