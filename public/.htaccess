@@ -18,22 +18,31 @@ DirectoryIndex index.html
   AddType image/png .png
   AddType font/woff .woff
   AddType font/woff2 .woff2
+  AddType application/pdf .pdf
 </IfModule>
 
-# 3. Regras de Roteamento SPA
+# 3. Regras de Roteamento SPA e Subpastas
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Não reescrever requisições para arquivos ou pastas físicas existentes
+  # A. Redirecionamento de assets mesmo se chamado via subcaminho (/mares/assets/ -> assets/)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule (^|.*/)assets/(.*)$ assets/$2 [L]
+
+  # B. Arquivos estáticos essenciais chamados via subcaminho (/mares/manifest.webmanifest -> manifest.webmanifest)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule (^|.*/)(favicon\.ico|logo\.svg|manifest\.webmanifest|manifest\.json|sw\.js|apple-touch-icon\.png|icon-192\.png|icon-512\.png|og-image\.png|favicon-32x32\.png|favicon\.png|programacao-navios\.pdf)$ $2 [L]
+
+  # C. Não reescrever requisições para arquivos ou pastas físicas existentes
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Se for um asset com extensão que não existe, retorne 404 em vez de index.html
+  # D. Se for um asset com extensão que não existe, retorne 404 em vez de index.html
   RewriteCond %{REQUEST_URI} \.(js|mjs|css|png|jpg|jpeg|gif|svg|ico|webmanifest|json|woff|woff2)$ [NC]
   RewriteRule ^ - [R=404,L]
 
-  # Fallback de SPA apenas para páginas de navegação
+  # E. Fallback de SPA para raiz, /mares e qualquer rota
   RewriteRule ^ index.html [L]
 </IfModule>
 

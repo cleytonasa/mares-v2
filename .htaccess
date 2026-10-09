@@ -18,34 +18,36 @@ DirectoryIndex production/index.html dist/index.html index.html
   AddType image/png .png
   AddType font/woff .woff
   AddType font/woff2 .woff2
+  AddType application/pdf .pdf
 </IfModule>
 
-# 3. Regras de Roteamento Inteligente (Suporte a Deploy Direto e Subpastas production/dist)
+# 3. Regras de Roteamento Inteligente (Suporte a Raiz, Subpastas como /mares/, e Deploy Direto)
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # A. Redirecionamento transparente de assets e arquivos estáticos para a pasta production/
+  # A. Redirecionamento transparente de assets mesmo se chamado via subpasta (/mares/assets/ ou /assets/)
   RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI} !-f
-  RewriteRule ^assets/(.*)$ production/assets/$1 [L]
+  RewriteRule (^|.*/)assets/(.*)$ production/assets/$2 [L]
 
+  # B. Arquivos estáticos essenciais (manifest, favicon, ícones, pdf) em qualquer nível de subpasta
   RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^(favicon\.ico|logo\.svg|manifest\.webmanifest|manifest\.json|sw\.js|apple-touch-icon\.png|icon-192\.png|icon-512\.png|og-image\.png|favicon-32x32\.png|favicon\.png)$ production/$1 [L]
+  RewriteRule (^|.*/)(favicon\.ico|logo\.svg|manifest\.webmanifest|manifest\.json|sw\.js|apple-touch-icon\.png|icon-192\.png|icon-512\.png|og-image\.png|favicon-32x32\.png|favicon\.png|programacao-navios\.pdf)$ production/$2 [L]
 
-  # B. Servir arquivos físicos existentes diretamente
+  # C. Servir arquivos físicos existentes diretamente
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # C. Não reescrever requisições de arquivos inexistentes com extensão conhecida para HTML (evita erro de MIME type)
+  # D. Não reescrever requisições de arquivos inexistentes com extensão conhecida para HTML (evita erro de MIME type)
   RewriteCond %{REQUEST_URI} \.(js|mjs|css|png|jpg|jpeg|gif|svg|ico|webmanifest|json|woff|woff2)$ [NC]
   RewriteRule ^ - [R=404,L]
 
-  # D. Servir o index.html de produção
+  # E. Servir o index.html de produção para raiz e rotas conhecidas como /mares
   RewriteRule ^$ production/index.html [L]
   RewriteRule ^index\.html$ production/index.html [L]
+  RewriteRule ^mares/?$ production/index.html [L]
 
-  # E. Fallback SPA
+  # F. Fallback SPA para qualquer outra rota
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^(.*)$ production/index.html [L]
