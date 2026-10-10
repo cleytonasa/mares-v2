@@ -154,6 +154,7 @@ async function parseIntersalPdf(pdfBuffer) {
   }
 
   const parsedVessels = [];
+  let pdfGlobalOrder = 0;
 
   for (let p = 0; p < res.pages.length; p++) {
     const lines = res.pages[p].text.split('\n');
@@ -167,7 +168,7 @@ async function parseIntersalPdf(pdfBuffer) {
         if (currentVesselLines.length > 0) {
           const m = detectMonthFromLines(currentVesselLines);
           for (const vLine of currentVesselLines) {
-            parsedVessels.push({ line: vLine, month: m });
+            parsedVessels.push({ line: vLine, month: m, pdfOrder: pdfGlobalOrder++ });
           }
           currentVesselLines = [];
         }
@@ -176,7 +177,7 @@ async function parseIntersalPdf(pdfBuffer) {
     if (currentVesselLines.length > 0) {
       const m = detectMonthFromLines(currentVesselLines);
       for (const vLine of currentVesselLines) {
-        parsedVessels.push({ line: vLine, month: m });
+        parsedVessels.push({ line: vLine, month: m, pdfOrder: pdfGlobalOrder++ });
       }
     }
   }
@@ -187,6 +188,7 @@ async function parseIntersalPdf(pdfBuffer) {
   for (const item of parsedVessels) {
     const line = item.line;
     const month = item.month;
+    const pdfOrder = item.pdfOrder;
     const dateMatches = [...line.matchAll(/\b\d{2}\/\d{2}\/\d{4,5}\s+\d{2}:\d{2}\b/g)];
     const visitCode = line.slice(0, 10).trim();
 
@@ -239,6 +241,9 @@ async function parseIntersalPdf(pdfBuffer) {
       } else if (postDates.startsWith('Concluído') || postDates.startsWith('Concluido')) {
         status = 'Concluído';
         afterStatus = postDates.replace(/^Conclu[íi]do\s*/, '');
+      } else if (postDates.startsWith('Confirmado')) {
+        status = 'Confirmado';
+        afterStatus = postDates.replace(/^Confirmado\s*/, '');
       } else if (postDates.startsWith('Previsto')) {
         status = 'Previsto';
         afterStatus = postDates.replace(/^Previsto\s*/, '');
@@ -297,16 +302,22 @@ async function parseIntersalPdf(pdfBuffer) {
         shipper,
         month,
         monthName: MONTH_NAMES[month] || 'Outubro',
-        year: 2026
+        year: 2026,
+        pdfOrder
       });
     }
   }
 
-  // Sort chronologically by month (1 to 12) and visit code
+  // Sort chronologically by month (1 to 12) and preserve original PDF schedule order within each month
   records.sort((a, b) => {
     if (a.month !== b.month) return a.month - b.month;
-    return a.visitCode.localeCompare(b.visitCode);
+    return a.pdfOrder - b.pdfOrder;
   });
+
+  // Clean temporary pdfOrder property
+  for (const r of records) {
+    delete r.pdfOrder;
+  }
 
   // Calculate monthly summaries
   const monthlySummaries = [];
@@ -316,7 +327,8 @@ async function parseIntersalPdf(pdfBuffer) {
     const monthVessels = records.filter((r) => r.month === m);
     const concluded = monthVessels.filter((r) => r.status === 'Concluído');
     const operating = monthVessels.filter((r) => r.status === 'Em operação');
-    const planned = monthVessels.filter((r) => r.status === 'Previsto');
+    const confirmed = monthVessels.filter((r) => r.status === 'Confirmado');
+    const planned = monthVessels.filter((r) => r.status === 'Previsto' || r.status === 'Confirmado');
 
     const scTotal = monthVessels.reduce((sum, r) => sum + r.scVolumeTons, 0);
     const sqTotal = monthVessels.reduce((sum, r) => sum + r.sqVolumeTons, 0);
@@ -362,6 +374,7 @@ async function parseIntersalPdf(pdfBuffer) {
       vesselCount: monthVessels.length,
       concludedCount: concluded.length,
       operatingCount: operating.length,
+      confirmedCount: confirmed.length,
       plannedCount: planned.length,
       concludedTotalVolume,
       concludedScTotal,
@@ -383,7 +396,8 @@ async function parseIntersalPdf(pdfBuffer) {
   // Calculate overall totals
   const allConcluded = records.filter((r) => r.status === 'Concluído');
   const allOperating = records.filter((r) => r.status === 'Em operação');
-  const allPlanned = records.filter((r) => r.status === 'Previsto');
+  const allConfirmed = records.filter((r) => r.status === 'Confirmado');
+  const allPlanned = records.filter((r) => r.status === 'Previsto' || r.status === 'Confirmado');
 
   const concludedTotalTons = allConcluded.reduce((sum, r) => sum + r.totalVolumeTons, 0);
   const concludedScTotalTons = allConcluded.reduce((sum, r) => sum + r.scVolumeTons, 0);
@@ -433,6 +447,7 @@ async function parseIntersalPdf(pdfBuffer) {
     vesselAverageTons,
     operatingTotalTons,
     operatingVessels: allOperating.length,
+    confirmedVessels: allConfirmed.length,
     plannedTotalTons,
     plannedVessels: allPlanned.length,
     totalProgrammedTons
@@ -464,7 +479,7 @@ export interface SaltVesselRecord {
   eta: string;
   etb: string;
   etd: string;
-  status: 'Concluído' | 'Em operação' | 'Previsto';
+  status: 'Concluído' | 'Em operação' | 'Confirmado' | 'Previsto';
   scVolumeTons: number; // Sal Comum (SC)
   sqVolumeTons: number; // Sal Químico (SQ)
   totalVolumeTons: number;
@@ -484,6 +499,7 @@ export interface MonthlySaltSummary {
   vesselCount: number;
   concludedCount?: number;
   operatingCount?: number;
+  confirmedCount?: number;
   plannedCount?: number;
   concludedTotalVolume: number;
   concludedScTotal: number;
@@ -508,8 +524,44 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = ${JSON.stringify(mon
 export const LINEUP_LAST_UPDATED = '${lineupLastUpdated}';
 
 export const OVERALL_TOTALS = ${JSON.stringify(overallTotals, null, 2)};
+
+/**
+ * Determina o navio ativo em operação e o próximo navio previsto/confirmado na fila do terminal.
+ * REGRA OPERACIONAL:
+ * - O próximo navio toma como referência o navio imediatamente posterior ao ÚLTIMO NAVIO CONCLUÍDO.
+ * - Caso haja um navio com status 'Em operação', ele é o navio ativo no terminal,
+ *   e o próximo navio é o seguinte a ele.
+ * - Caso não haja navio 'Em operação' (berço livre / troca de navio), o navio imediatamente
+ *   seguinte ao último concluído é o PRÓXIMO PREVISTO/CONFIRMADO (ex: IBIS BULKER).
+ */
+export function getActiveAndNextVessel(vessels: SaltVesselRecord[] = SALT_SHIPMENTS_2026) {
+  const operatingVessel = vessels.find((v) => v.status === 'Em operação');
+  let lastConcludedIndex = -1;
+  for (let i = 0; i < vessels.length; i++) {
+    if (vessels[i].status === 'Concluído') {
+      lastConcludedIndex = i;
+    }
+  }
+
+  let nextPlannedVessel: SaltVesselRecord | undefined = undefined;
+  if (operatingVessel) {
+    const opIndex = vessels.findIndex((v) => v.id === operatingVessel.id);
+    nextPlannedVessel = vessels.slice(opIndex + 1).find((v) => v.status === 'Confirmado' || v.status === 'Previsto');
+  } else if (lastConcludedIndex >= 0 && lastConcludedIndex < vessels.length - 1) {
+    nextPlannedVessel = vessels.slice(lastConcludedIndex + 1).find((v) => v.status !== 'Concluído');
+  } else {
+    nextPlannedVessel = vessels.find((v) => v.status === 'Confirmado' || v.status === 'Previsto');
+  }
+
+  return {
+    operatingVessel,
+    nextPlannedVessel,
+    lastConcludedVessel: lastConcludedIndex >= 0 ? vessels[lastConcludedIndex] : undefined,
+  };
+}
 `;
 }
+
 
 /**
  * Main execution

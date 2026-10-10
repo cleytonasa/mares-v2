@@ -42,7 +42,7 @@ export const InformativoGenerator: React.FC<InformativoGeneratorProps> = ({
     (v) => v.month === month && v.status === 'Concluído'
   );
   const plannedVesselsInMonth = SALT_SHIPMENTS_2026.filter(
-    (v) => v.month === month && (v.status === 'Previsto' || v.status === 'Em operação')
+    (v) => v.month === month && (v.status === 'Previsto' || v.status === 'Confirmado' || v.status === 'Em operação')
   );
   const monthTotalTons = concludedVesselsInMonth.reduce((acc, v) => acc + v.totalVolumeTons, 0);
   const plannedMonthTotalTons = plannedVesselsInMonth.reduce((acc, v) => acc + v.totalVolumeTons, 0);

@@ -29,6 +29,7 @@ import {
   OVERALL_TOTALS,
   LINEUP_LAST_UPDATED,
   SaltVesselRecord,
+  getActiveAndNextVessel,
 } from '../data/saltShipmentsData';
 
 interface SaltShipmentsDashboardProps {
@@ -39,7 +40,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
   const [selectedMonth, setSelectedMonth] = useState<number | 'ALL'>('ALL');
   const [selectedShipper, setSelectedShipper] = useState<'ALL' | 'SALINOR' | 'SDB'>('ALL');
   const [selectedTraffic, setSelectedTraffic] = useState<'ALL' | 'EXP' | 'CBT'>('ALL');
-  const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'Concluído' | 'Em operação' | 'Previsto'>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'Concluído' | 'Em operação' | 'Confirmado' | 'Previsto'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<'etb' | 'totalVolumeTons' | 'loaMeters' | 'vesselName'>('etb');
   const [sortAsc, setSortAsc] = useState<boolean>(true);
@@ -48,11 +49,13 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [timelineMonth, setTimelineMonth] = useState<number>(10); // Default to October 2026 (current active line-up month with vessel in operation)
 
-  // Active Operating Vessel & Next Planned Vessel
-  const activeOperatingVessel = useMemo(() => SALT_SHIPMENTS_2026.find((v) => v.status === 'Em operação'), []);
-  const nextPlannedVessel = useMemo(() => !activeOperatingVessel ? SALT_SHIPMENTS_2026.find((v) => v.status === 'Previsto') : undefined, [activeOperatingVessel]);
+  // Active Operating Vessel & Next Vessel in Line-up (determined right after the last concluded vessel)
+  const { operatingVessel: activeOperatingVessel, nextPlannedVessel } = useMemo(
+    () => getActiveAndNextVessel(SALT_SHIPMENTS_2026),
+    []
+  );
 
-  // Timeline month details & vessels separated by Operating (first), Planned (second), and Concluded (below)
+  // Timeline month details & vessels separated by Operating, Scheduled (Confirmed/Planned), and Concluded
   const timelineMonthInfo = useMemo(() => {
     return MONTHLY_SALT_SUMMARIES.find((m) => m.month === timelineMonth) || MONTHLY_SALT_SUMMARIES[MONTHLY_SALT_SUMMARIES.length - 1];
   }, [timelineMonth]);
@@ -60,13 +63,16 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
   const timelineVessels = useMemo(() => {
     const list = SALT_SHIPMENTS_2026.filter((v) => v.month === timelineMonth);
     const operating = list.filter((v) => v.status === 'Em operação');
+    const confirmed = list.filter((v) => v.status === 'Confirmado');
     const planned = list.filter((v) => v.status === 'Previsto');
     const concluded = list.filter((v) => v.status === 'Concluído');
     return {
       operating,
+      confirmed,
       planned,
+      scheduled: [...confirmed, ...planned],
       concluded,
-      all: [...operating, ...planned, ...concluded],
+      all: [...operating, ...confirmed, ...planned, ...concluded],
       totalCount: list.length,
     };
   }, [timelineMonth]);
@@ -275,25 +281,37 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                 </div>
               </div>
             ) : nextPlannedVessel ? (
-              <div className="px-3.5 py-2 rounded-xl bg-slate-950/90 border border-cyan-500/60 text-cyan-300 shadow-lg flex items-center gap-3">
+              <div className={`px-3.5 py-2 rounded-xl bg-slate-950/90 border shadow-lg flex items-center gap-3 ${
+                nextPlannedVessel.status === 'Confirmado'
+                  ? 'border-indigo-500/70 text-indigo-300'
+                  : 'border-cyan-500/60 text-cyan-300'
+              }`}>
                 <div className="relative flex items-center justify-center shrink-0">
-                  <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                  <Clock className={`w-3.5 h-3.5 ${nextPlannedVessel.status === 'Confirmado' ? 'text-indigo-400' : 'text-cyan-400'}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-cyan-400 font-black uppercase tracking-wider">
-                      PRÓXIMO PREVISTO
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                      nextPlannedVessel.status === 'Confirmado'
+                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                        : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
+                    }`}>
+                      {nextPlannedVessel.status === 'Confirmado' ? 'PRÓXIMO CONFIRMADO' : 'PRÓXIMO PREVISTO'}
                     </span>
                   </div>
                   <div className="text-xs font-black text-white font-mono flex items-center gap-1.5 mt-0.5">
-                    <Ship className="w-3.5 h-3.5 text-cyan-400" />
+                    <Ship className={`w-3.5 h-3.5 ${nextPlannedVessel.status === 'Confirmado' ? 'text-indigo-400' : 'text-cyan-400'}`} />
                     <span>{nextPlannedVessel.vesselName}</span>
                     <span className="text-slate-400 font-normal">•</span>
-                    <span className="text-amber-300 font-semibold">ETA {nextPlannedVessel.eta.split(' ')[0]}</span>
+                    <span className="text-amber-300 font-semibold">
+                      {nextPlannedVessel.etb ? `ETB ${nextPlannedVessel.etb.split(' ')[0]}` : `ETA ${nextPlannedVessel.eta.split(' ')[0]}`}
+                    </span>
                     <span className="text-slate-400 font-normal">•</span>
-                    <span className="text-cyan-300">
+                    <span className="text-white">
                       {nextPlannedVessel.totalVolumeTons.toLocaleString('pt-BR')} t
                     </span>
+                    <span className="text-slate-400 font-normal hidden sm:inline">•</span>
+                    <span className="text-slate-300 font-normal hidden sm:inline">{nextPlannedVessel.shipper}</span>
                   </div>
                 </div>
               </div>
@@ -465,38 +483,52 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
             </div>
           )}
 
-          {/* Group 2: Planned Vessels (Previstos) */}
-          {timelineVessels.planned.length > 0 && (
+          {/* Group 2: Scheduled Vessels (Confirmados & Previstos) */}
+          {timelineVessels.scheduled.length > 0 && (
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between gap-2 px-1">
                 <span className="text-[11px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-sky-400" />
-                  Navios Previstos & Programação
+                  Navios Programados & Previstos
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {timelineVessels.planned.map((v) => (
+                {timelineVessels.scheduled.map((v) => (
                   <div
                     key={v.id}
-                    className="p-3 sm:p-3.5 rounded-xl bg-slate-950/85 border border-sky-500/40 hover:border-sky-500/80 transition shadow-md flex flex-col justify-between group overflow-hidden"
+                    className={`p-3 sm:p-3.5 rounded-xl bg-slate-950/85 border transition shadow-md flex flex-col justify-between group overflow-hidden ${
+                      v.status === 'Confirmado'
+                        ? 'border-indigo-500/50 hover:border-indigo-400'
+                        : 'border-sky-500/40 hover:border-sky-500/80'
+                    }`}
                   >
                     {/* Top Vessel Info Header: Row 1 = Name + Status on Left, Volume Badge on Right */}
                     <div>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                          <span className="font-bold text-white text-xs sm:text-sm group-hover:text-cyan-300 transition flex items-center gap-1.5">
-                            <Ship className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                          <span className={`font-bold text-white text-xs sm:text-sm transition flex items-center gap-1.5 ${
+                            v.status === 'Confirmado' ? 'group-hover:text-indigo-300' : 'group-hover:text-cyan-300'
+                          }`}>
+                            <Ship className={`w-3.5 h-3.5 shrink-0 ${v.status === 'Confirmado' ? 'text-indigo-400' : 'text-sky-400'}`} />
                             <span className="truncate">{v.vesselName}</span>
                           </span>
-                          <span className="px-1.5 py-0.5 rounded bg-sky-950/90 border border-sky-500/50 text-[9px] font-bold text-sky-300 flex items-center gap-1 shrink-0">
+                          <span className={`px-1.5 py-0.5 rounded border text-[9px] font-bold flex items-center gap-1 shrink-0 ${
+                            v.status === 'Confirmado'
+                              ? 'bg-indigo-950/90 border-indigo-500/60 text-indigo-300'
+                              : 'bg-sky-950/90 border-sky-500/50 text-sky-300'
+                          }`}>
                             <Clock className="w-2.5 h-2.5" />
-                            Previsto
+                            {v.status}
                           </span>
                         </div>
 
                         <div className="shrink-0 text-right">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-sky-950/60 border border-sky-500/50 text-xs sm:text-sm font-extrabold text-sky-200 font-mono tracking-tight shadow-sm whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-xs sm:text-sm font-extrabold font-mono tracking-tight shadow-sm whitespace-nowrap ${
+                            v.status === 'Confirmado'
+                              ? 'bg-indigo-950/60 border-indigo-500/50 text-indigo-200'
+                              : 'bg-sky-950/60 border-sky-500/50 text-sky-200'
+                          }`}>
                             {v.totalVolumeTons.toLocaleString('pt-BR')} t
                           </span>
                         </div>
@@ -531,12 +563,20 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                         <span className="text-slate-400 text-[9px] block">{v.eta.split(' ')[1]}</span>
                       </div>
 
-                      <div className="p-1.5 rounded-lg border bg-sky-950/30 border-sky-900/50 text-sky-300">
-                        <span className="text-[9px] block uppercase font-sans font-bold text-sky-400">
-                          ETB Previsto
+                      <div className={`p-1.5 rounded-lg border ${
+                        v.status === 'Confirmado'
+                          ? 'bg-indigo-950/40 border-indigo-500/50 text-indigo-300'
+                          : 'bg-sky-950/30 border-sky-900/50 text-sky-300'
+                      }`}>
+                        <span className={`text-[9px] block uppercase font-sans font-bold ${
+                          v.status === 'Confirmado' ? 'text-indigo-400' : 'text-sky-400'
+                        }`}>
+                          {v.status === 'Confirmado' ? 'ETB Confirmado' : 'ETB Previsto'}
                         </span>
                         <span className="font-bold text-white">{v.etb.split(' ')[0]}</span>
-                        <span className="text-[9px] block text-sky-400">{v.etb.split(' ')[1]}</span>
+                        <span className={`text-[9px] block ${v.status === 'Confirmado' ? 'text-indigo-400' : 'text-sky-400'}`}>
+                          {v.etb.split(' ')[1]}
+                        </span>
                       </div>
 
                       <div className="bg-slate-900/60 p-1.5 rounded-lg border border-slate-800">
@@ -1407,6 +1447,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
               <option value="ALL">Status: Todos ({SALT_SHIPMENTS_2026.length})</option>
               <option value="Concluído">Status: Concluídos ({SALT_SHIPMENTS_2026.filter(v => v.status === 'Concluído').length})</option>
               <option value="Em operação">Status: Em operação ({SALT_SHIPMENTS_2026.filter(v => v.status === 'Em operação').length})</option>
+              <option value="Confirmado">Status: Confirmados ({SALT_SHIPMENTS_2026.filter(v => v.status === 'Confirmado').length})</option>
               <option value="Previsto">Status: Previstos ({SALT_SHIPMENTS_2026.filter(v => v.status === 'Previsto').length})</option>
             </select>
 
@@ -1603,6 +1644,8 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                             ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/30'
                             : v.status === 'Em operação'
                             ? 'bg-amber-950/90 text-amber-300 border border-amber-500/50'
+                            : v.status === 'Confirmado'
+                            ? 'bg-indigo-950/90 text-indigo-300 border border-indigo-500/50'
                             : 'bg-sky-950/80 text-sky-400 border border-sky-500/30'
                         }`}
                       >
@@ -1610,6 +1653,8 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                           <CheckCircle2 className="w-2.5 h-2.5" />
                         ) : v.status === 'Em operação' ? (
                           <Ship className="w-2.5 h-2.5 animate-pulse text-amber-400" />
+                        ) : v.status === 'Confirmado' ? (
+                          <Clock className="w-2.5 h-2.5 text-indigo-400" />
                         ) : (
                           <Clock className="w-2.5 h-2.5" />
                         )}
