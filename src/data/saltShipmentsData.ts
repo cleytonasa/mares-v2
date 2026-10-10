@@ -12,7 +12,7 @@ export interface SaltVesselRecord {
   eta: string;
   etb: string;
   etd: string;
-  status: 'Concluído' | 'Em operação' | 'Previsto';
+  status: 'Concluído' | 'Em operação' | 'Confirmado' | 'Previsto';
   scVolumeTons: number; // Sal Comum (SC)
   sqVolumeTons: number; // Sal Químico (SQ)
   totalVolumeTons: number;
@@ -32,6 +32,7 @@ export interface MonthlySaltSummary {
   vesselCount: number;
   concludedCount?: number;
   operatingCount?: number;
+  confirmedCount?: number;
   plannedCount?: number;
   concludedTotalVolume: number;
   concludedScTotal: number;
@@ -391,26 +392,6 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "year": 2026
   },
   {
-    "id": "sdb2026003",
-    "visitCode": "SDB2026003",
-    "vesselName": "BOLD HORIZON",
-    "loaMeters": 189.99,
-    "dwt": 52384,
-    "eta": "21/05/2026 15:00",
-    "etb": "24/05/2026 14:40",
-    "etd": "29/05/2026 11:45",
-    "status": "Concluído",
-    "scVolumeTons": 47000,
-    "sqVolumeTons": 0,
-    "totalVolumeTons": 47000,
-    "trafficType": "EXP",
-    "trafficLabel": "Exportação",
-    "shipper": "SDB",
-    "month": 5,
-    "monthName": "Maio",
-    "year": 2026
-  },
-  {
     "id": "sln2026016",
     "visitCode": "SLN2026016",
     "vesselName": "TAXIDIARA",
@@ -466,6 +447,26 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "trafficType": "CBT",
     "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
+    "month": 5,
+    "monthName": "Maio",
+    "year": 2026
+  },
+  {
+    "id": "sdb2026003",
+    "visitCode": "SDB2026003",
+    "vesselName": "BOLD HORIZON",
+    "loaMeters": 189.99,
+    "dwt": 52384,
+    "eta": "21/05/2026 15:00",
+    "etb": "24/05/2026 14:40",
+    "etd": "29/05/2026 11:45",
+    "status": "Concluído",
+    "scVolumeTons": 47000,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 47000,
+    "trafficType": "EXP",
+    "trafficLabel": "Exportação",
+    "shipper": "SDB",
     "month": 5,
     "monthName": "Maio",
     "year": 2026
@@ -631,26 +632,6 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "year": 2026
   },
   {
-    "id": "sdb2026004",
-    "visitCode": "SDB2026004",
-    "vesselName": "SUNLIGHT",
-    "loaMeters": 169.37,
-    "dwt": 28346,
-    "eta": "12/08/2026 10:42",
-    "etb": "12/08/2026 16:12",
-    "etd": "16/08/2026 15:30",
-    "status": "Concluído",
-    "scVolumeTons": 28100,
-    "sqVolumeTons": 0,
-    "totalVolumeTons": 28100,
-    "trafficType": "EXP",
-    "trafficLabel": "Exportação",
-    "shipper": "SDB",
-    "month": 8,
-    "monthName": "Agosto",
-    "year": 2026
-  },
-  {
     "id": "sln2026027",
     "visitCode": "SLN2026027",
     "vesselName": "MARCOS DIAS",
@@ -686,6 +667,26 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "trafficType": "EXP",
     "trafficLabel": "Exportação",
     "shipper": "SALINOR",
+    "month": 8,
+    "monthName": "Agosto",
+    "year": 2026
+  },
+  {
+    "id": "sdb2026004",
+    "visitCode": "SDB2026004",
+    "vesselName": "SUNLIGHT",
+    "loaMeters": 169.37,
+    "dwt": 28346,
+    "eta": "12/08/2026 10:42",
+    "etb": "12/08/2026 16:12",
+    "etd": "16/08/2026 15:30",
+    "status": "Concluído",
+    "scVolumeTons": 28100,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 28100,
+    "trafficType": "EXP",
+    "trafficLabel": "Exportação",
+    "shipper": "SDB",
     "month": 8,
     "monthName": "Agosto",
     "year": 2026
@@ -731,26 +732,6 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "year": 2026
   },
   {
-    "id": "sdb2026005",
-    "visitCode": "SDB2026005",
-    "vesselName": "SUNLIGHT",
-    "loaMeters": 169.37,
-    "dwt": 28346,
-    "eta": "20/09/2026 00:30",
-    "etb": "20/09/2026 09:36",
-    "etd": "23/09/2026 10:46",
-    "status": "Concluído",
-    "scVolumeTons": 28100,
-    "sqVolumeTons": 0,
-    "totalVolumeTons": 28100,
-    "trafficType": "EXP",
-    "trafficLabel": "Exportação",
-    "shipper": "SDB",
-    "month": 9,
-    "monthName": "Setembro",
-    "year": 2026
-  },
-  {
     "id": "sln2026031",
     "visitCode": "SLN2026031",
     "vesselName": "REVENGER",
@@ -766,6 +747,26 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "trafficType": "CBT",
     "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
+    "month": 9,
+    "monthName": "Setembro",
+    "year": 2026
+  },
+  {
+    "id": "sdb2026005",
+    "visitCode": "SDB2026005",
+    "vesselName": "SUNLIGHT",
+    "loaMeters": 169.37,
+    "dwt": 28346,
+    "eta": "20/09/2026 00:30",
+    "etb": "20/09/2026 09:36",
+    "etd": "23/09/2026 10:46",
+    "status": "Concluído",
+    "scVolumeTons": 28100,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 28100,
+    "trafficType": "EXP",
+    "trafficLabel": "Exportação",
+    "shipper": "SDB",
     "month": 9,
     "monthName": "Setembro",
     "year": 2026
@@ -788,26 +789,6 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "shipper": "SALINOR",
     "month": 9,
     "monthName": "Setembro",
-    "year": 2026
-  },
-  {
-    "id": "sdb2026006",
-    "visitCode": "SDB2026006",
-    "vesselName": "SUNLIGHT",
-    "loaMeters": 169.37,
-    "dwt": 28346,
-    "eta": "18/10/2026 00:01",
-    "etb": "20/10/2026 08:00",
-    "etd": "22/10/2026 12:00",
-    "status": "Previsto",
-    "scVolumeTons": 28100,
-    "sqVolumeTons": 0,
-    "totalVolumeTons": 28100,
-    "trafficType": "EXP",
-    "trafficLabel": "Exportação",
-    "shipper": "SDB",
-    "month": 10,
-    "monthName": "Outubro",
     "year": 2026
   },
   {
@@ -859,7 +840,7 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "eta": "08/10/2026 00:01",
     "etb": "11/10/2026 10:00",
     "etd": "15/10/2026 08:00",
-    "status": "Previsto",
+    "status": "Confirmado",
     "scVolumeTons": 45310,
     "sqVolumeTons": 0,
     "totalVolumeTons": 45310,
@@ -906,6 +887,26 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "trafficType": "CBT",
     "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
+    "month": 10,
+    "monthName": "Outubro",
+    "year": 2026
+  },
+  {
+    "id": "sdb2026006",
+    "visitCode": "SDB2026006",
+    "vesselName": "SUNLIGHT",
+    "loaMeters": 169.37,
+    "dwt": 28346,
+    "eta": "18/10/2026 00:01",
+    "etb": "20/10/2026 08:00",
+    "etd": "22/10/2026 12:00",
+    "status": "Previsto",
+    "scVolumeTons": 28100,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 28100,
+    "trafficType": "EXP",
+    "trafficLabel": "Exportação",
+    "shipper": "SDB",
     "month": 10,
     "monthName": "Outubro",
     "year": 2026
@@ -961,6 +962,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 4,
     "concludedCount": 4,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 132830,
     "concludedScTotal": 109930,
@@ -985,6 +987,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 6,
     "concludedCount": 6,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 199700,
     "concludedScTotal": 140050,
@@ -1009,6 +1012,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 4,
     "concludedCount": 4,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 138450,
     "concludedScTotal": 138950,
@@ -1033,6 +1037,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 2,
     "concludedCount": 2,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 67050,
     "concludedScTotal": 22450,
@@ -1057,6 +1062,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 5,
     "concludedCount": 5,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 214650,
     "concludedScTotal": 190750,
@@ -1081,6 +1087,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 3,
     "concludedCount": 3,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 124785,
     "concludedScTotal": 101035,
@@ -1105,6 +1112,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 5,
     "concludedCount": 5,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 162574,
     "concludedScTotal": 149421,
@@ -1129,6 +1137,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 5,
     "concludedCount": 5,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 177480,
     "concludedScTotal": 152380,
@@ -1153,6 +1162,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 3,
     "concludedCount": 3,
     "operatingCount": 0,
+    "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 106300,
     "concludedScTotal": 81200,
@@ -1177,6 +1187,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "vesselCount": 8,
     "concludedCount": 2,
     "operatingCount": 0,
+    "confirmedCount": 1,
     "plannedCount": 6,
     "concludedTotalVolume": 51150,
     "concludedScTotal": 51150,
@@ -1218,7 +1229,43 @@ export const OVERALL_TOTALS = {
   "vesselAverageTons": 35256,
   "operatingTotalTons": 0,
   "operatingVessels": 0,
+  "confirmedVessels": 1,
   "plannedTotalTons": 175410,
   "plannedVessels": 6,
   "totalProgrammedTons": 1550379
 };
+
+/**
+ * Determina o navio ativo em operação e o próximo navio previsto/confirmado na fila do terminal.
+ * REGRA OPERACIONAL:
+ * - O próximo navio toma como referência o navio imediatamente posterior ao ÚLTIMO NAVIO CONCLUÍDO.
+ * - Caso haja um navio com status 'Em operação', ele é o navio ativo no terminal,
+ *   e o próximo navio é o seguinte a ele.
+ * - Caso não haja navio 'Em operação' (berço livre / troca de navio), o navio imediatamente
+ *   seguinte ao último concluído é o PRÓXIMO PREVISTO/CONFIRMADO (ex: IBIS BULKER).
+ */
+export function getActiveAndNextVessel(vessels: SaltVesselRecord[] = SALT_SHIPMENTS_2026) {
+  const operatingVessel = vessels.find((v) => v.status === 'Em operação');
+  let lastConcludedIndex = -1;
+  for (let i = 0; i < vessels.length; i++) {
+    if (vessels[i].status === 'Concluído') {
+      lastConcludedIndex = i;
+    }
+  }
+
+  let nextPlannedVessel: SaltVesselRecord | undefined = undefined;
+  if (operatingVessel) {
+    const opIndex = vessels.findIndex((v) => v.id === operatingVessel.id);
+    nextPlannedVessel = vessels.slice(opIndex + 1).find((v) => v.status === 'Confirmado' || v.status === 'Previsto');
+  } else if (lastConcludedIndex >= 0 && lastConcludedIndex < vessels.length - 1) {
+    nextPlannedVessel = vessels.slice(lastConcludedIndex + 1).find((v) => v.status !== 'Concluído');
+  } else {
+    nextPlannedVessel = vessels.find((v) => v.status === 'Confirmado' || v.status === 'Previsto');
+  }
+
+  return {
+    operatingVessel,
+    nextPlannedVessel,
+    lastConcludedVessel: lastConcludedIndex >= 0 ? vessels[lastConcludedIndex] : undefined,
+  };
+}
