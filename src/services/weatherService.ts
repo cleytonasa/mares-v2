@@ -1,4 +1,4 @@
-import { WeatherData, DailyForecastDay } from '../types/maritime';
+import { WeatherData, DailyForecastDay, HourlyWindRecord } from '../types/maritime';
 
 const COMPASS_POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
 
@@ -26,6 +26,59 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const DAYS_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const MONTHS_SHORT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+// Diurnal hourly wind variation typical for Costa Branca (Areia Branca / Macau - RN)
+export function generateFallbackHourly(refDate: Date): HourlyWindRecord[] {
+  const records: HourlyWindRecord[] = [];
+  const year = refDate.getFullYear();
+  const monthStr = String(refDate.getMonth() + 1).padStart(2, '0');
+  const dayStr = String(refDate.getDate()).padStart(2, '0');
+  const dateStr = `${year}-${monthStr}-${dayStr}`;
+
+  // Hourly curve factor: valleys at 04-06h, peaking at 14-16h
+  const hourlyFactors = [
+    { hour: 0, speed: 20, gust: 28, dir: 100 },
+    { hour: 1, speed: 19, gust: 27, dir: 105 },
+    { hour: 2, speed: 18, gust: 25, dir: 105 },
+    { hour: 3, speed: 17, gust: 24, dir: 110 },
+    { hour: 4, speed: 16, gust: 23, dir: 110 },
+    { hour: 5, speed: 18, gust: 25, dir: 110 },
+    { hour: 6, speed: 20, gust: 28, dir: 105 },
+    { hour: 7, speed: 23, gust: 32, dir: 105 },
+    { hour: 8, speed: 25, gust: 36, dir: 100 },
+    { hour: 9, speed: 28, gust: 40, dir: 100 },
+    { hour: 10, speed: 30, gust: 44, dir: 95 },
+    { hour: 11, speed: 32, gust: 47, dir: 95 },
+    { hour: 12, speed: 34, gust: 50, dir: 95 },
+    { hour: 13, speed: 36, gust: 53, dir: 90 },
+    { hour: 14, speed: 37, gust: 55, dir: 90 },
+    { hour: 15, speed: 38, gust: 56, dir: 90 },
+    { hour: 16, speed: 36, gust: 52, dir: 95 },
+    { hour: 17, speed: 33, gust: 48, dir: 95 },
+    { hour: 18, speed: 30, gust: 43, dir: 100 },
+    { hour: 19, speed: 27, gust: 39, dir: 100 },
+    { hour: 20, speed: 25, gust: 36, dir: 105 },
+    { hour: 21, speed: 23, gust: 33, dir: 105 },
+    { hour: 22, speed: 22, gust: 31, dir: 105 },
+    { hour: 23, speed: 21, gust: 29, dir: 100 },
+  ];
+
+  for (const h of hourlyFactors) {
+    records.push({
+      time: `${String(h.hour).padStart(2, '0')}:00`,
+      hour: h.hour,
+      dateStr,
+      windSpeedKmH: h.speed,
+      windSpeedKnots: Number((h.speed / 1.852).toFixed(1)),
+      windGustKmH: h.gust,
+      windGustKnots: Number((h.gust / 1.852).toFixed(1)),
+      windDirection: h.dir,
+      windDirectionLabel: getCompassDirection(h.dir),
+    });
+  }
+
+  return records;
+}
 
 function generateFallbackWeekly(refDate: Date): DailyForecastDay[] {
   const list: DailyForecastDay[] = [];
@@ -87,8 +140,8 @@ export async function fetchPortWeather(lat: number, lng: number): Promise<Weathe
   }
 
   try {
-    // 1. Weather forecast endpoint with 7-day daily data
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max,sunrise,sunset&timezone=America%2FFortaleza&forecast_days=7`;
+    // 1. Weather forecast endpoint with 7-day daily data and hourly wind
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max,sunrise,sunset&timezone=America%2FFortaleza&forecast_days=7`;
     
     // 2. Marine swell forecast endpoint with 7-day daily data
     const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&current=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America%2FFortaleza&forecast_days=7`;
@@ -110,6 +163,7 @@ export async function fetchPortWeather(lat: number, lng: number): Promise<Weathe
 
     const currentW = weatherJson?.current || {};
     const dailyW = weatherJson?.daily || {};
+    const hourlyW = weatherJson?.hourly || {};
     const currentM = marineJson?.current || {};
     const dailyM = marineJson?.daily || {};
 
@@ -127,6 +181,33 @@ export async function fetchPortWeather(lat: number, lng: number): Promise<Weathe
 
     const sunrise = dailyW.sunrise?.[0] ? dailyW.sunrise[0].split('T')[1] : '05:40';
     const sunset = dailyW.sunset?.[0] ? dailyW.sunset[0].split('T')[1] : '17:45';
+
+    // Parse hourly wind records (7 days of 24h data = 168 hours)
+    const hourlyTimes: string[] = hourlyW.time || [];
+    const hourlyWind: HourlyWindRecord[] = [];
+
+    if (hourlyTimes.length > 0) {
+      for (let i = 0; i < Math.min(168, hourlyTimes.length); i++) {
+        const timeStr = hourlyTimes[i];
+        const [dStr, tStr] = timeStr.split('T');
+        const hour = parseInt(tStr?.split(':')[0] || '0', 10);
+        const speed = Math.round(hourlyW.wind_speed_10m?.[i] ?? 20);
+        const gust = Math.round(hourlyW.wind_gusts_10m?.[i] ?? (speed * 1.35));
+        const dir = Math.round(hourlyW.wind_direction_10m?.[i] ?? 100);
+
+        hourlyWind.push({
+          time: `${String(hour).padStart(2, '0')}:00`,
+          hour,
+          dateStr: dStr,
+          windSpeedKmH: speed,
+          windSpeedKnots: Number((speed / 1.852).toFixed(1)),
+          windGustKmH: gust,
+          windGustKnots: Number((gust / 1.852).toFixed(1)),
+          windDirection: dir,
+          windDirectionLabel: getCompassDirection(dir),
+        });
+      }
+    }
 
     // Parse 7-day daily forecast
     const weeklyForecast: DailyForecastDay[] = [];
@@ -205,6 +286,7 @@ export async function fetchPortWeather(lat: number, lng: number): Promise<Weathe
       nauticalDusk: '18:10',
       lastUpdated: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       weeklyForecast: weeklyForecast.length >= 7 ? weeklyForecast : generateFallbackWeekly(new Date()),
+      hourlyWind: hourlyWind.length > 0 ? hourlyWind : generateFallbackHourly(new Date()),
     };
 
     CACHE[cacheKey] = { data, timestamp: Date.now() };
@@ -237,6 +319,7 @@ export async function fetchPortWeather(lat: number, lng: number): Promise<Weathe
       nauticalDusk: '18:10',
       lastUpdated: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       weeklyForecast: generateFallbackWeekly(new Date()),
+      hourlyWind: generateFallbackHourly(new Date()),
     };
     return fallback;
   }

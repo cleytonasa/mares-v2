@@ -63,6 +63,18 @@ export interface DailyForecastDay {
   sunset: string;
 }
 
+export interface HourlyWindRecord {
+  time: string; // "14:00"
+  hour: number; // 0 - 23
+  dateStr: string; // "2026-10-10"
+  windSpeedKmH: number;
+  windSpeedKnots: number;
+  windGustKmH: number;
+  windGustKnots: number;
+  windDirection: number;
+  windDirectionLabel: string;
+}
+
 export interface WeatherData {
   temperature: number;
   apparentTemperature: number;
@@ -88,6 +100,7 @@ export interface WeatherData {
   nauticalDusk: string;
   lastUpdated: string;
   weeklyForecast?: DailyForecastDay[];
+  hourlyWind?: HourlyWindRecord[];
 }
 
 export interface VesselParameters {

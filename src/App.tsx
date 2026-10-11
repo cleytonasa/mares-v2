@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar';
 import { CurrentTideCard } from './components/CurrentTideCard';
 import { TideChart24h } from './components/TideChart24h';
 import { WeeklyWeatherForecast } from './components/WeeklyWeatherForecast';
+import { WindGustChart } from './components/WindGustChart';
 import { RainfallChart } from './components/RainfallChart';
 import { InteractiveNauticalMap } from './components/InteractiveNauticalMap';
 import { TideTableMonthly } from './components/TideTableMonthly';
@@ -209,7 +210,14 @@ export default function App() {
               loading={weatherLoading}
             />
 
-            {/* 4. Pluviometer & Rainfall Monitor (Chuva no Período - Diário / Mensal) */}
+            {/* 4. Wind Gusts Line Chart (Picos de Rajadas - Diário 24h & Mensal) */}
+            <WindGustChart
+              port={activePort}
+              weather={weather}
+              currentTime={effectiveTime}
+            />
+
+            {/* 5. Pluviometer & Rainfall Monitor (Chuva no Período - Diário / Mensal) */}
             <RainfallChart port={activePort} />
 
             {/* Quick Actions & Navigation Module */}
