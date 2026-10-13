@@ -267,11 +267,16 @@ async function parseIntersalPdf(pdfBuffer) {
       } else if (numTokens.length === 2) {
         scVolumeTons = numTokens[0];
         sqVolumeTons = 0;
-        totalVolumeTons = numTokens[1];
+        totalVolumeTons = Math.max(numTokens[0], numTokens[1]);
       } else if (numTokens.length >= 3) {
         scVolumeTons = numTokens[0];
         sqVolumeTons = numTokens[1];
-        totalVolumeTons = numTokens[2];
+        totalVolumeTons = Math.max(numTokens[2], numTokens[0] + numTokens[1]);
+      }
+
+      // Garantia de integridade: volume total nunca é menor que a soma dos volumes embarcados (SC + SQ)
+      if (scVolumeTons + sqVolumeTons > 0 && totalVolumeTons < scVolumeTons + sqVolumeTons) {
+        totalVolumeTons = scVolumeTons + sqVolumeTons;
       }
 
       for (const w of wordTokens) {
