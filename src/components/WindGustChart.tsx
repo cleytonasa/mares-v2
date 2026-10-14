@@ -66,7 +66,14 @@ export const WindGustChart: React.FC<WindGustChartProps> = ({
   currentTime,
 }) => {
   const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily');
-  const [useKnots, setUseKnots] = useState<boolean>(false);
+  const [useKnots, setUseKnots] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('preferred_wind_unit');
+      return saved ? saved === 'knots' : true;
+    } catch {
+      return true;
+    }
+  });
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0); // 0 = Hoje, 1 = Amanhã, etc.
   const [selectedMonth, setSelectedMonth] = useState<number>(() => {
     const currentM = new Date().getMonth() + 1;
@@ -391,7 +398,13 @@ export const WindGustChart: React.FC<WindGustChartProps> = ({
 
           {/* Toggle Unit: km/h vs Nós */}
           <button
-            onClick={() => setUseKnots(!useKnots)}
+            onClick={() => {
+              const nextVal = !useKnots;
+              setUseKnots(nextVal);
+              try {
+                localStorage.setItem('preferred_wind_unit', nextVal ? 'knots' : 'kmh');
+              } catch {}
+            }}
             className="text-[10px] sm:text-xs font-mono px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
             title="Alternar unidade entre km/h e Nós"
           >

@@ -28,7 +28,14 @@ export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
   loading = false,
 }) => {
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
-  const [useKnots, setUseKnots] = useState<boolean>(false);
+  const [useKnots, setUseKnots] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('preferred_wind_unit');
+      return saved ? saved === 'knots' : true;
+    } catch {
+      return true;
+    }
+  });
 
   if (!forecast || forecast.length === 0) {
     return null;
@@ -80,9 +87,15 @@ export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
           </div>
         </div>
 
-        {/* Toggle Wind Unit */}
+        {/* Toggle Unit */}
         <button
-          onClick={() => setUseKnots(!useKnots)}
+          onClick={() => {
+            const nextVal = !useKnots;
+            setUseKnots(nextVal);
+            try {
+              localStorage.setItem('preferred_wind_unit', nextVal ? 'knots' : 'kmh');
+            } catch {}
+          }}
           className="shrink-0 text-[10px] sm:text-xs font-mono px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
           title="Alternar unidade de vento"
         >
