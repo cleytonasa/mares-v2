@@ -1,7 +1,5 @@
 node_modules/
 build/
-dist/
-dist.tar.gz
 coverage/
 .DS_Store
 *.log
