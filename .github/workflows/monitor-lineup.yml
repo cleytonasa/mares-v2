@@ -1,10 +1,8 @@
 name: Monitorar Line-Up Intersal
 on:
   schedule:
-    # Segunda a sexta: 06:00, 09:00, 12:00, 15:00 e 18:00 (Horário de Brasília / UTC-3 -> 09, 12, 15, 18, 21 UTC)
-    - cron: '0 9,12,15,18,21 * * 1-5'
-    # Finais de semana: 09:00 e 15:00 (Horário de Brasília -> 12 e 18 UTC)
-    - cron: '0 12,18 * * 0,6'
+    # Executa a cada 1 hora, 24 horas por dia, todos os dias (minuto 0 de cada hora)
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -68,7 +66,7 @@ jobs:
           # Obter data da atualização registrada pelo sincronizador
           UPDATE_DATE=$(node -e "try { console.log(require('./scripts/last_sync.json').lineupLastUpdated); } catch(e) { console.log(''); }")
           
-          git add src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf production dist assets dist.tar.gz
-          git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE)"
+          git add -f src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf production dist assets dist.tar.gz
+          git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE)" || echo "Nenhuma alteração para commitar."
           git push
 

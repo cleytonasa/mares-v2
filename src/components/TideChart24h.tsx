@@ -2,6 +2,8 @@ import React from 'react';
 import { PortConfig } from '../types/maritime';
 import { get48hTideCurve, calculateCurrentTide } from '../utils/tideCalculations';
 import { getTidesForDay } from '../data/tideData2026';
+import { translations, Language } from '../utils/i18n';
+import { Waves, Calendar } from 'lucide-react';
 
 interface TideChart48hProps {
   port: PortConfig;
@@ -9,13 +11,17 @@ interface TideChart48hProps {
   onChangeDate?: (newDate: Date) => void;
   currentTime: Date;
   onSelectTime?: (time: Date) => void;
+  language?: Language;
 }
 
 export const TideChart24h: React.FC<TideChart48hProps> = ({
   port,
   selectedDate,
   currentTime,
+  language = 'pt',
 }) => {
+  const t = translations[language];
+
   // Day 1 (Reference Date)
   const d1 = new Date(selectedDate);
   const year1 = d1.getFullYear();
@@ -32,61 +38,91 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
   const day2Tides = getTidesForDay(year2, month2, day2);
 
   // 48h curve points (192 points = 15-minute resolution across 48h)
-  const curvePoints = get48hTideCurve(selectedDate, port, 192);
+  const rawCurvePoints = get48hTideCurve(selectedDate, port, 192);
+  const curvePoints = rawCurvePoints.map((pt, idx) => ({
+    ...pt,
+    hourOffset: (idx / (rawCurvePoints.length - 1)) * 48,
+  }));
 
-  // SVG dimensions - Height increased for clearer vertical amplitude on mobile
+  // SVG dimensions
   const svgWidth = 900;
   const svgHeight = 390;
   const padding = { top: 40, right: 28, bottom: 65, left: 45 };
-
   const chartWidth = svgWidth - padding.left - padding.right;
   const chartHeight = svgHeight - padding.top - padding.bottom;
 
-  const minHeight = 0.0;
-  const maxHeight = 4.0;
+  const minVal = 0.0;
+  const maxVal = 4.0;
 
-  const scaleX = (fraction: number) => padding.left + fraction * chartWidth;
-  const scaleY = (height: number) => padding.top + (1 - (height - minHeight) / (maxHeight - minHeight)) * chartHeight;
+  const scaleX = (val: number) => padding.left + val * chartWidth;
+  const scaleY = (val: number) => svgHeight - padding.bottom - ((val - minVal) / (maxVal - minVal)) * chartHeight;
 
-  // Build SVG Path for 48 Hours
-  const pathD = curvePoints.reduce((acc, pt, idx) => {
-    const fraction = idx / (curvePoints.length - 1);
-    const x = scaleX(fraction);
+  // Generate SVG path for 48h curve
+  const pathData = curvePoints.reduce((acc, pt, idx) => {
+    const x = scaleX(pt.hourOffset / 48);
     const y = scaleY(pt.height);
     return idx === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
   }, '');
 
-  const areaD = `${pathD} L ${scaleX(1)} ${scaleY(0)} L ${scaleX(0)} ${scaleY(0)} Z`;
+  // Gradient area fill path
+  const firstPt = curvePoints[0];
+  const lastPt = curvePoints[curvePoints.length - 1];
+  const areaPath = `M ${scaleX(firstPt.hourOffset / 48)} ${svgHeight - padding.bottom} L ${pathData.replace(/^M\s+/, '')} L ${scaleX(lastPt.hourOffset / 48)} ${svgHeight - padding.bottom} Z`;
 
-  // Midnight / Day separation X coordinate (exactly 24h in 48h = fraction 0.5)
-  const midnightX = scaleX(0.5);
+  // Midnight (24h) divider position on 48h scale
+  const midnightX = scaleX(24 / 48);
 
-  // Calculate position of current time cursor within the 48h window
-  const startWindowTs = new Date(selectedDate).setHours(0, 0, 0, 0);
-  const endWindowTs = startWindowTs + 48 * 60 * 60 * 1000;
-  const currentTs = currentTime.getTime();
-  const isCurrentTimeInWindow = currentTs >= startWindowTs && currentTs <= endWindowTs;
-  const currentWindowFraction = (currentTs - startWindowTs) / (48 * 60 * 60 * 1000);
-  const currentCursorX = scaleX(Math.max(0, Math.min(1, currentWindowFraction)));
+  // Check if currentTime falls within the 48h window from selectedDate 00:00
+  const startWindow = new Date(selectedDate);
+  startWindow.setHours(0, 0, 0, 0);
+  const endWindow = new Date(startWindow);
+  endWindow.setTime(endWindow.getTime() + 48 * 3600 * 1000);
+
+  const isCurrentTimeInWindow = currentTime >= startWindow && currentTime <= endWindow;
+  const currentHourOffset = (currentTime.getTime() - startWindow.getTime()) / (3600 * 1000);
+  const currentCursorX = scaleX(Math.max(0, Math.min(48, currentHourOffset)) / 48);
 
   return (
-    <div className="bg-slate-900/90 rounded-xl sm:rounded-2xl border border-slate-800 p-2.5 sm:p-4 md:p-5 shadow-xl text-slate-100">
-      {/* SVG Chart Container - Fully visible and scalable on mobile screens */}
-      <div className="relative w-full overflow-hidden select-none bg-slate-950/50 rounded-lg sm:rounded-xl border border-slate-800/70 p-1 sm:p-2">
+    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-xl relative overflow-hidden backdrop-blur-md">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <Waves className="w-5 h-5 text-cyan-400" />
+              {t.tideChartTitle}
+            </h3>
+          </div>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {t.tideChartSubtitle}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono text-cyan-300">
+          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+          <span>{t.selectDate}: {selectedDate.toLocaleDateString(language === 'en' ? 'en-US' : 'pt-BR')}</span>
+        </div>
+      </div>
+
+      {/* SVG Chart Container */}
+      <div className="w-full overflow-x-auto">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="w-full h-auto block cursor-default"
+          className="w-full h-auto min-w-[650px] select-none"
         >
           <defs>
-            {/* Area Gradient */}
-            <linearGradient id="tideGradient48" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.45" />
-              <stop offset="60%" stopColor="#3b82f6" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0.0" />
+            <linearGradient id="tideAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.45" />
+              <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.02" />
+            </linearGradient>
+            <linearGradient id="tideLineGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#38bdf8" />
+              <stop offset="50%" stopColor="#0284c7" />
+              <stop offset="100%" stopColor="#38bdf8" />
             </linearGradient>
           </defs>
 
-          {/* Background Day Sections Shading */}
+          {/* Background Split: Day 1 vs Day 2 */}
           <rect
             x={padding.left}
             y={padding.top}
@@ -104,7 +140,7 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
             opacity="0.1"
           />
 
-          {/* Midnight 24h / 00h Vertical Divider Line */}
+          {/* Midnight 24h Vertical Divider Line */}
           <line
             x1={midnightX}
             y1={padding.top}
@@ -115,7 +151,7 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
             strokeDasharray="4 3"
           />
 
-          {/* Y Axis labels without horizontal grid lines */}
+          {/* Y Axis labels */}
           {[0, 1, 2, 3, 4].map((level) => {
             const y = scaleY(level);
             return (
@@ -134,17 +170,17 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
             );
           })}
 
-          {/* X Axis Time Marks across 48 Hours (Every 6 hours) */}
+          {/* X Axis Time Marks (Every 6 hours) */}
           {[
-            { hour: 0, day: 1, label: '00h' },
-            { hour: 6, day: 1, label: '06h' },
-            { hour: 12, day: 1, label: '12h' },
-            { hour: 18, day: 1, label: '18h' },
-            { hour: 24, day: 2, label: '00h' },
-            { hour: 30, day: 2, label: '06h' },
-            { hour: 36, day: 2, label: '12h' },
-            { hour: 42, day: 2, label: '18h' },
-            { hour: 48, day: 2, label: '24h' },
+            { hour: 0, label: '00h' },
+            { hour: 6, label: '06h' },
+            { hour: 12, label: '12h' },
+            { hour: 18, label: '18h' },
+            { hour: 24, label: language === 'en' ? '00h (Day 2)' : '00h (Dia 2)' },
+            { hour: 30, label: '06h' },
+            { hour: 36, label: '12h' },
+            { hour: 42, label: '18h' },
+            { hour: 48, label: '24h' },
           ].map((item, idx) => {
             const fraction = item.hour / 48;
             const x = scaleX(fraction);
@@ -160,7 +196,7 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
                 />
                 <text
                   x={x}
-                  y={svgHeight - padding.bottom + 17}
+                  y={svgHeight - padding.bottom + 18}
                   fill={item.hour === 24 ? '#38bdf8' : '#94a3b8'}
                   fontSize="11"
                   fontFamily="monospace"
@@ -169,80 +205,29 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
                 >
                   {item.label}
                 </text>
-                {item.hour === 24 && (
-                  <text
-                    x={x}
-                    y={svgHeight - padding.bottom + 29}
-                    fill="#0ea5e9"
-                    fontSize="9"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                  >
-                    Virada de Dia
-                  </text>
-                )}
               </g>
             );
           })}
 
-          {/* Day Date Legends positioned below the hours axis */}
-          <g>
-            {/* Day 1 bracket & date */}
-            <line
-              x1={scaleX(0.04)}
-              y1={svgHeight - padding.bottom + 34}
-              x2={scaleX(0.44)}
-              y2={svgHeight - padding.bottom + 34}
-              stroke="#334155"
-              strokeWidth="1"
-              strokeDasharray="2 2"
-            />
-            <text
-              x={scaleX(0.25)}
-              y={svgHeight - padding.bottom + 50}
-              fill="#38bdf8"
-              fontSize="12"
-              fontFamily="monospace"
-              fontWeight="bold"
-              textAnchor="middle"
-            >
-              {d1.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
-            </text>
+          {/* Area Fill */}
+          <path d={areaPath} fill="url(#tideAreaGrad)" />
 
-            {/* Day 2 bracket & date */}
-            <line
-              x1={scaleX(0.56)}
-              y1={svgHeight - padding.bottom + 34}
-              x2={scaleX(0.96)}
-              y2={svgHeight - padding.bottom + 34}
-              stroke="#334155"
-              strokeWidth="1"
-              strokeDasharray="2 2"
-            />
-            <text
-              x={scaleX(0.75)}
-              y={svgHeight - padding.bottom + 50}
-              fill="#94a3b8"
-              fontSize="12"
-              fontFamily="monospace"
-              fontWeight="bold"
-              textAnchor="middle"
-            >
-              {d2.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
-            </text>
-          </g>
+          {/* Harmonic Curve Stroke */}
+          <path
+            d={pathData}
+            fill="none"
+            stroke="url(#tideLineGrad)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
 
-          {/* 48h Tide Area and Line */}
-          <path d={areaD} fill="url(#tideGradient48)" />
-          <path d={pathD} fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" />
-
-          {/* Day 1 High Tide Events Markers (0-24h) - Low tides removed */}
+          {/* Day 1 High Tide Markers */}
           {day1Tides.events
             .filter((evt) => evt.type === 'high')
             .map((evt, idx) => {
               const [h, m] = evt.time.split(':').map(Number);
-              const fraction = (h * 60 + m) / 2880; // in 48h
+              const fraction = (h * 60 + m) / 2880;
               const x = scaleX(fraction);
               const adjustedHeight = evt.height * port.heightMultiplier;
               const y = scaleY(adjustedHeight);
@@ -258,14 +243,7 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
                     strokeDasharray="2 2"
                     strokeWidth="0.8"
                   />
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={4.5}
-                    fill="#0284c7"
-                    stroke="#38bdf8"
-                    strokeWidth="1.8"
-                  />
+                  <circle cx={x} cy={y} r={4.5} fill="#0284c7" stroke="#38bdf8" strokeWidth="1.8" />
                   <text
                     x={x}
                     y={y - 8}
@@ -281,12 +259,12 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
               );
             })}
 
-          {/* Day 2 High Tide Events Markers (24-48h) - Low tides removed */}
+          {/* Day 2 High Tide Markers */}
           {day2Tides.events
             .filter((evt) => evt.type === 'high')
             .map((evt, idx) => {
               const [h, m] = evt.time.split(':').map(Number);
-              const fraction = (1440 + h * 60 + m) / 2880; // in 48h
+              const fraction = (1440 + h * 60 + m) / 2880;
               const x = scaleX(fraction);
               const adjustedHeight = evt.height * port.heightMultiplier;
               const y = scaleY(adjustedHeight);
@@ -302,14 +280,7 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
                     strokeDasharray="2 2"
                     strokeWidth="0.8"
                   />
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={4.5}
-                    fill="#0284c7"
-                    stroke="#38bdf8"
-                    strokeWidth="1.8"
-                  />
+                  <circle cx={x} cy={y} r={4.5} fill="#0284c7" stroke="#38bdf8" strokeWidth="1.8" />
                   <text
                     x={x}
                     y={y - 8}
@@ -325,7 +296,7 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
               );
             })}
 
-          {/* Real-time Current Position Marker (AGORA) */}
+          {/* Current Time Indicator */}
           {isCurrentTimeInWindow && (
             <g>
               <line
@@ -354,14 +325,12 @@ export const TideChart24h: React.FC<TideChart48hProps> = ({
                 fontWeight="bold"
                 textAnchor="middle"
               >
-                AGORA ({currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })})
+                {language === 'en' ? 'NOW' : 'AGORA'} ({currentTime.toLocaleTimeString(language === 'en' ? 'en-US' : 'pt-BR', { hour: '2-digit', minute: '2-digit' })})
               </text>
             </g>
           )}
-
         </svg>
       </div>
     </div>
   );
 };
-

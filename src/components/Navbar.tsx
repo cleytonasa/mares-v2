@@ -1,5 +1,5 @@
 import React from 'react';
-import { Anchor, Bell, BellRing, Compass, Map, Ship, Table, Waves } from 'lucide-react';
+import { Anchor, Bell, BellRing, Compass, Map, Ship, Table, Waves, Globe } from 'lucide-react';
 import { PortConfig, CustomUserLocation } from '../types/maritime';
 import { IntersalLogo } from './IntersalLogo';
 
@@ -12,6 +12,8 @@ interface NavbarProps {
   userLocation: CustomUserLocation;
   notificationsEnabled?: boolean;
   onOpenNotifications: () => void;
+  language: 'pt' | 'en';
+  onToggleLanguage: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,11 +25,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   userLocation,
   notificationsEnabled = false,
   onOpenNotifications,
+  language = 'pt',
+  onToggleLanguage,
 }) => {
   return (
     <header className="bg-slate-900 text-slate-100 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6">
-        {/* Top Info Bar: Brand + Realtime Clock + Notification Button in a single compact row */}
+        {/* Top Info Bar: Brand + Realtime Clock + Notification & Language Buttons */}
         <div className="py-2 sm:py-2.5 flex items-center justify-between gap-2 border-b border-slate-800/80">
           {/* Logo & Title */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -36,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div className="min-w-0">
               <h1 className="text-xs sm:text-base font-bold tracking-tight text-white truncate font-sans">
-                Sala de Controle - Marés
+                {language === 'en' ? 'Tide Control Room' : 'Sala de Controle - Marés'}
               </h1>
               <p className="text-[10px] sm:text-xs text-slate-400 font-sans truncate">
                 <span className="font-medium text-slate-300">Areia Branca & Macau - RN</span>
@@ -44,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Right Controls: Notification Action + Compact Live Clock */}
+          {/* Right Controls: Notification Action + Language Toggle + Compact Live Clock */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Notification Bell Button */}
             <button
@@ -54,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-emerald-950/80 border-emerald-500/80 text-emerald-300 hover:bg-emerald-900'
                   : 'bg-slate-800/90 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
               }`}
-              title="Configurar Notificações de Preamar e Hora em Hora"
+              title={language === 'en' ? 'Configure Tide & Hourly Notifications' : 'Configurar Notificações de Preamar e Hora em Hora'}
             >
               {notificationsEnabled ? (
                 <BellRing className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 animate-pulse" />
@@ -62,7 +66,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" />
               )}
               <span className="hidden sm:inline">
-                {notificationsEnabled ? 'Alertas Ativos' : 'Notificações'}
+                {notificationsEnabled ? (language === 'en' ? 'Active Alerts' : 'Alertas Ativos') : (language === 'en' ? 'Notifications' : 'Notificações')}
+              </span>
+            </button>
+
+            {/* Language Toggle Button (Right next to notifications) */}
+            <button
+              onClick={onToggleLanguage}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-700 bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+              title={language === 'pt' ? 'Switch to English' : 'Mudar para Português'}
+            >
+              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+              <span className="font-mono text-[11px] sm:text-xs">
+                {language === 'pt' ? 'EN' : 'PT'}
               </span>
             </button>
 
@@ -73,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-[9px] sm:text-[10px] text-cyan-400 font-medium">BRT</span>
               </div>
               <div className="text-[9px] sm:text-[10px] text-slate-400 leading-tight">
-                {currentTime.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                {currentTime.toLocaleDateString(language === 'en' ? 'en-US' : 'pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
               </div>
             </div>
           </div>
@@ -119,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="nav-tab-dashboard"
                 onClick={() => onChangeTab('dashboard')}
-                title="Painel em Tempo Real"
+                title={language === 'en' ? 'Real-Time Dashboard' : 'Painel em Tempo Real'}
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'dashboard'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
@@ -127,13 +143,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <Waves className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 text-cyan-400" />
-                <span>Painel</span>
+                <span>{language === 'en' ? 'Dashboard' : 'Painel'}</span>
               </button>
 
               <button
                 id="nav-tab-shipments"
                 onClick={() => onChangeTab('shipments')}
-                title="Line-Up de Navios INTERSAL"
+                title={language === 'en' ? 'INTERSAL Vessel Line-Up' : 'Line-Up de Navios INTERSAL'}
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'shipments'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
@@ -147,7 +163,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="nav-tab-map"
                 onClick={() => onChangeTab('map')}
-                title="Mapa Náutico Georreferenciado"
+                title={language === 'en' ? 'Georeferenced Nautical Map' : 'Mapa Náutico Georreferenciado'}
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'map'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
@@ -155,14 +171,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <Map className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 text-indigo-400" />
-                <span className="hidden sm:inline">Mapa Náutico</span>
-                <span className="sm:hidden">Mapa</span>
+                <span className="hidden sm:inline">{language === 'en' ? 'Nautical Map' : 'Mapa Náutico'}</span>
+                <span className="sm:hidden">{language === 'en' ? 'Map' : 'Mapa'}</span>
               </button>
 
               <button
                 id="nav-tab-table"
                 onClick={() => onChangeTab('table')}
-                title="Tábua de Marés DHN"
+                title={language === 'en' ? 'DHN Tide Table' : 'Tábua de Marés DHN'}
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'table'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
@@ -170,8 +186,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <Table className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 text-emerald-400" />
-                <span className="hidden sm:inline">Tábua DHN</span>
-                <span className="sm:hidden">Tábua</span>
+                <span className="hidden sm:inline">{language === 'en' ? 'DHN Table' : 'Tábua DHN'}</span>
+                <span className="sm:hidden">{language === 'en' ? 'Table' : 'Tábua'}</span>
               </button>
             </nav>
           </div>

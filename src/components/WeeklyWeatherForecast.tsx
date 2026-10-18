@@ -15,91 +15,75 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { DailyForecastDay, PortConfig } from '../types/maritime';
+import { translations, Language } from '../utils/i18n';
 
 interface WeeklyWeatherForecastProps {
   forecast?: DailyForecastDay[];
   port: PortConfig;
   loading?: boolean;
+  language?: Language;
 }
 
 export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
   forecast,
   port,
   loading = false,
+  language = 'pt',
 }) => {
+  const t = translations[language];
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
-  const [useKnots, setUseKnots] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('preferred_wind_unit');
-      return saved ? saved === 'knots' : true;
-    } catch {
-      return true;
-    }
-  });
+  const [useKnots, setUseKnots] = useState<boolean>(true);
 
   if (!forecast || forecast.length === 0) {
-    return null;
+    return (
+      <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 text-center text-slate-400">
+        {language === 'en' ? 'Loading weather forecast...' : 'Carregando previsão meteorológica...'}
+      </div>
+    );
   }
 
   const selectedDay = forecast[selectedDayIndex] || forecast[0];
 
-  // Helper to render weather icon
-  const getWeatherIcon = (code: number, className: string = 'w-7 h-7') => {
-    if (code === 0) {
-      return <Sun className={`${className} text-amber-400`} />;
-    }
-    if (code === 1 || code === 2) {
-      return <CloudSun className={`${className} text-amber-300`} />;
-    }
-    if (code === 3 || code === 45 || code === 48) {
-      return <Cloud className={`${className} text-slate-400`} />;
-    }
-    if (code >= 51 && code <= 65) {
-      return <CloudRain className={`${className} text-cyan-400`} />;
-    }
-    if (code >= 80 && code <= 82) {
-      return <CloudRain className={`${className} text-blue-400`} />;
-    }
-    if (code >= 95) {
-      return <CloudLightning className={`${className} text-purple-400`} />;
-    }
-    return <Sun className={`${className} text-amber-400`} />;
+  const getWeatherIcon = (code: number, className: string = 'w-6 h-6') => {
+    if (code === 0) return <Sun className={`${className} text-amber-400 animate-pulse`} />;
+    if (code <= 2) return <CloudSun className={`${className} text-amber-300`} />;
+    if (code <= 45) return <Cloud className={`${className} text-slate-400`} />;
+    if (code <= 65) return <CloudRain className={`${className} text-cyan-400`} />;
+    return <CloudLightning className={`${className} text-purple-400 animate-bounce`} />;
+  };
+
+  const getWeatherDescription = (code: number) => {
+    if (code === 0) return language === 'en' ? 'Clear Sky / Sunny' : 'Céu Limpo / Ensolarado';
+    if (code <= 2) return language === 'en' ? 'Partly Cloudy' : 'Parcialmente Nublado';
+    if (code <= 45) return language === 'en' ? 'Overcast / Mist' : 'Nublado / Névoa';
+    if (code <= 65) return language === 'en' ? 'Light Rain / Showers' : 'Chuva Fraca / Pancadas';
+    return language === 'en' ? 'Thunderstorms' : 'Tempestade com Raios';
   };
 
   return (
-    <div className="bg-slate-900/90 rounded-xl sm:rounded-2xl border border-slate-800 p-3 sm:p-5 shadow-xl text-slate-100 space-y-3.5 sm:space-y-4">
+    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-xl relative overflow-hidden backdrop-blur-md">
+      {/* Background glow accent */}
+      <div className="absolute right-0 top-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-700/50 flex items-center justify-center text-cyan-400 shrink-0">
-            <Calendar className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-white tracking-wide truncate flex items-center gap-1.5 font-sans">
-              <span>Previsão do Tempo • 7 Dias</span>
-              <span className="text-[10px] font-mono text-cyan-400 font-normal bg-cyan-950/60 px-1.5 py-0.2 rounded border border-cyan-800/40">
-                {port.name}
-              </span>
-            </h3>
-            <p className="text-[10px] sm:text-xs text-slate-400 font-mono truncate">
-              Condições meteorológicas e marítimas da semana
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+        <div>
+          <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <CloudSun className="w-5 h-5 text-cyan-400" />
+            {t.weeklyForecastTitle}
+          </h3>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {t.weeklyForecastSubtitle}
+          </p>
         </div>
 
-        {/* Toggle Unit */}
+        {/* Wind Unit Switcher */}
         <button
-          onClick={() => {
-            const nextVal = !useKnots;
-            setUseKnots(nextVal);
-            try {
-              localStorage.setItem('preferred_wind_unit', nextVal ? 'knots' : 'kmh');
-            } catch {}
-          }}
-          className="shrink-0 text-[10px] sm:text-xs font-mono px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
-          title="Alternar unidade de vento"
+          onClick={() => setUseKnots(!useKnots)}
+          className="px-2.5 py-1 bg-slate-950 border border-slate-700/80 rounded-xl text-xs font-mono text-slate-300 hover:border-cyan-500 transition self-start sm:self-auto"
+          title={language === 'en' ? 'Toggle wind unit' : 'Alternar unidade de vento'}
         >
-          <span className="hidden xs:inline">Vento: </span>
+          <span className="hidden xs:inline">{language === 'en' ? 'Wind: ' : 'Vento: '}</span>
           <span className="text-cyan-400 font-bold">{useKnots ? 'Nós (kts)' : 'km/h'}</span>
         </button>
       </div>
@@ -123,7 +107,6 @@ export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
                   : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700 hover:bg-slate-950/80'
               }`}
             >
-              {/* Day Label */}
               <div className="w-full">
                 <div className="flex items-center justify-center gap-1">
                   <span
@@ -139,19 +122,16 @@ export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
                 </span>
               </div>
 
-              {/* Weather Icon */}
               <div className="my-0.5 transform hover:scale-110 transition duration-300">
                 {getWeatherIcon(day.weatherCode, 'w-6 h-6 sm:w-7 sm:h-7')}
               </div>
 
-              {/* Temperature Min / Max */}
               <div className="w-full">
                 <div className="flex items-baseline justify-center gap-1 font-mono">
                   <span className="text-xs sm:text-sm font-black text-white">{day.tempMax}°</span>
                   <span className="text-[10px] sm:text-xs text-slate-400 font-semibold">{day.tempMin}°</span>
                 </div>
 
-                {/* Thermal Gradient Bar */}
                 <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden mt-1 flex">
                   <div
                     className="h-full bg-gradient-to-r from-cyan-400 via-amber-400 to-rose-400 rounded-full"
@@ -163,7 +143,6 @@ export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
                 </div>
               </div>
 
-              {/* Wind & Swell Indicators */}
               <div className="w-full pt-1 border-t border-slate-800/80 flex flex-col gap-0.5 text-[10px] font-mono">
                 <div className="flex items-center justify-center gap-1 text-slate-300 truncate" title={`Vento: ${windSpd}`}>
                   <Wind className="w-2.5 h-2.5 text-cyan-400 shrink-0" />
@@ -175,10 +154,9 @@ export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
                 </div>
               </div>
 
-              {/* Rain Probability pill if > 15% */}
               {day.precipitationProb >= 15 && (
                 <div className="absolute -top-1.5 -right-1 px-1 py-0.2 bg-blue-600/90 text-[8px] font-mono font-bold text-white rounded-full flex items-center gap-0.5 shadow-sm">
-                  <Droplets className="w-2 h-2" />
+                  <Droplets className="w-2.5 h-2.5" />
                   {day.precipitationProb}%
                 </div>
               )}
@@ -187,55 +165,44 @@ export const WeeklyWeatherForecast: React.FC<WeeklyWeatherForecastProps> = ({
         })}
       </div>
 
-      {/* Selected Day Detail Box */}
-      {selectedDay && (
-        <div className="p-2.5 sm:p-3 bg-slate-950/70 rounded-lg sm:rounded-xl border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs font-mono">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 shrink-0">
-              {getWeatherIcon(selectedDay.weatherCode, 'w-6 h-6')}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 font-sans">
-                <span className="font-bold text-white text-xs sm:text-sm">
-                  {selectedDay.dayOfWeek === 'Hoje' ? 'Hoje' : `${selectedDay.dayOfWeek}-feira`}, {selectedDay.formattedDate}
-                </span>
-                <span className="text-[10px] text-slate-400">•</span>
-                <span className="text-[11px] text-cyan-300 font-medium truncate">
-                  {selectedDay.weatherDescription}
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                Vento predominante {selectedDay.windDirectionLabel} ({selectedDay.windDirectionDominant}°) • Rajadas de até{' '}
-                <span className="text-amber-300 font-bold">
-                  {useKnots ? `${selectedDay.windGustsMaxKnots} kts` : `${selectedDay.windGustsMaxKmH} km/h`}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 justify-between sm:justify-end border-t sm:border-t-0 border-slate-800 pt-1.5 sm:pt-0">
-            {/* Sun times */}
-            <div className="flex items-center gap-2 text-[10px] text-slate-400">
-              <span className="flex items-center gap-1" title="Nascer do Sol">
-                <Sunrise className="w-3 h-3 text-amber-400" />
-                {selectedDay.sunrise}
-              </span>
-              <span className="flex items-center gap-1" title="Pôr do Sol">
-                <Sunset className="w-3 h-3 text-orange-400" />
-                {selectedDay.sunset}
-              </span>
-            </div>
-
-            {/* Marine info */}
-            <div className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
-              <Waves className="w-3 h-3 text-cyan-400" />
-              <span>Ondas: <strong className="text-white">{selectedDay.waveHeightMeters.toFixed(1)}m</strong></span>
-              <span className="text-slate-500">•</span>
-              <span>Chuva: <strong className="text-white">{selectedDay.precipitationProb}%</strong></span>
-            </div>
-          </div>
+      {/* Selected Day Detailed Breakdown Footer */}
+      <div className="mt-4 pt-3 border-t border-slate-800 bg-slate-950/50 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+        <div>
+          <span className="text-slate-400 text-[10px] uppercase block">
+            {language === 'en' ? 'Condition' : 'Condição'}
+          </span>
+          <span className="font-bold text-white mt-0.5 block truncate">
+            {getWeatherDescription(selectedDay.weatherCode)}
+          </span>
         </div>
-      )}
+
+        <div>
+          <span className="text-slate-400 text-[10px] uppercase block">
+            {language === 'en' ? 'Wind / Gusts' : 'Vento / Rajadas'}
+          </span>
+          <span className="font-bold text-cyan-300 mt-0.5 block">
+            {useKnots ? `${selectedDay.windSpeedMaxKnots} kts` : `${selectedDay.windSpeedMaxKmH} km/h`} (Raj: {selectedDay.windGustMaxKnots} kts)
+          </span>
+        </div>
+
+        <div>
+          <span className="text-slate-400 text-[10px] uppercase block">
+            {language === 'en' ? 'Wave Height' : 'Ondulação (Vaga)'}
+          </span>
+          <span className="font-bold text-indigo-300 mt-0.5 block">
+            {selectedDay.waveHeightMeters.toFixed(1)} m ({selectedDay.waveDirection})
+          </span>
+        </div>
+
+        <div>
+          <span className="text-slate-400 text-[10px] uppercase block">
+            {language === 'en' ? 'Precipitation' : 'Precipitação'}
+          </span>
+          <span className="font-bold text-blue-300 mt-0.5 block">
+            {selectedDay.precipitationProb}% ({selectedDay.precipitationMm} mm)
+          </span>
+        </div>
+      </div>
     </div>
   );
 };

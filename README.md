@@ -1,5 +1,5 @@
 # 🌊 Controle de Marés - Areia Branca & Macau (RN)
-### INTERSAL • Sala de Operação Náutica e Portuária
+### INTERSAL • Sala de Operação 
 
 [![React](https://img.shields.io/badge/React-19-blue.svg?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
@@ -86,47 +86,6 @@
 └── package.json           # Dependências e scripts do projeto
 ```
 
----
-
-## 🚢 Sincronização Automática do Line-Up (Intersal)
-
-O projeto conta com monitoramento automatizado do boletim oficial da Intersal (`http://intersal.com.br/assets/arquivos/programacao-navios.pdf`):
-
-- **Script de Sincronização:** `scripts/sync-intersal.js`
-  - Faz requisições HTTP `HEAD` leves para verificar `Last-Modified` e `ETag` sem transferir o PDF desnecessariamente.
-  - Ao identificar nova edição, efetua o download, extrai a tabela completa de navios (LOA, DWT, ETAs, volumes e status) e atualiza `src/data/saltShipmentsData.ts`.
-  - Salva uma cópia pública do PDF oficial em `public/programacao-navios.pdf`.
-  - Registra o estado da última checagem em `scripts/last_sync.json`.
-
-- **Comandos via Terminal:**
-  ```bash
-  # Verificar se há nova edição e atualizar se necessário
-  npm run sync:lineup
-
-  # Forçar download e reprocessamento do PDF
-  npm run sync:lineup:force
-  ```
-
-- **Automação no GitHub Actions (`.github/workflows/monitor-lineup.yml`):**
-  - Roda automaticamente nos horários operacionais do porto (segunda a sexta às 06h, 09h, 12h, 15h e 18h de Brasília; finais de semana às 09h e 15h).
-  - Pode ser disparado manualmente a qualquer momento pela aba **Actions** no GitHub (*Run workflow*).
-  - Se houver novos dados, realiza o commit e push com o carimbo oficial da atualização, disparando o deploy contínuo da aplicação.
-
----
-
-## 🌐 Deploy em Servidor Web (Apache / cPanel / Hospedagem)
-
-Para publicar em um servidor web:
-
-1. Execute `npm run build`
-2. Envie todo o conteúdo da pasta **`production/`** para o diretório raiz ou subdiretório do servidor:
-   - 📁 `assets/` *(arquivos .js e .css compilados)*
-   - 📄 `index.html`
-   - 📄 `.htaccess`
-   - 📄 `manifest.webmanifest` e imagens/ícones
-3. O arquivo `.htaccess` incluso já está configurado com regras de rewrite SPA e cabeçalhos MIME corretos para JavaScript ES Modules.
-
----
 
 ## 📄 Licença
 

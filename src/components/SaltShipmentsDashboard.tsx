@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { translations, Language } from '../utils/i18n';
 import {
   Anchor,
   ArrowDownUp,
@@ -34,9 +35,11 @@ import {
 
 interface SaltShipmentsDashboardProps {
   onSelectVesselOnMap?: (vesselName: string) => void;
+  language?: Language;
 }
 
-export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () => {
+export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = ({ language = 'pt' }) => {
+  const t = translations[language];
   const [selectedMonth, setSelectedMonth] = useState<number | 'ALL'>('ALL');
   const [selectedShipper, setSelectedShipper] = useState<'ALL' | 'SALINOR' | 'SDB'>('ALL');
   const [selectedTraffic, setSelectedTraffic] = useState<'ALL' | 'EXP' | 'CBT'>('ALL');
@@ -246,7 +249,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                 </a>
               </div>
               <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight mt-1 flex items-center gap-2">
-                Painel de Embarque (Line-Up)
+                {t.shipmentsTitle}
               </h1>
             </div>
           </div>
