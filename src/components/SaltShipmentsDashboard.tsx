@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { translations, Language } from '../utils/i18n';
 import {
   Anchor,
   ArrowDownUp,
@@ -35,11 +34,9 @@ import {
 
 interface SaltShipmentsDashboardProps {
   onSelectVesselOnMap?: (vesselName: string) => void;
-  language?: Language;
 }
 
-export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = ({ language = 'pt' }) => {
-  const t = translations[language];
+export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () => {
   const [selectedMonth, setSelectedMonth] = useState<number | 'ALL'>('ALL');
   const [selectedShipper, setSelectedShipper] = useState<'ALL' | 'SALINOR' | 'SDB'>('ALL');
   const [selectedTraffic, setSelectedTraffic] = useState<'ALL' | 'EXP' | 'CBT'>('ALL');
@@ -249,7 +246,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = ({ 
                 </a>
               </div>
               <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight mt-1 flex items-center gap-2">
-                {t.shipmentsTitle}
+                Painel de Embarque (Line-Up)
               </h1>
             </div>
           </div>
@@ -1709,28 +1706,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = ({ 
                 ))
               )}
             </tbody>
-            {/* Table Footer Totals */}
-            <tfoot>
-              {/* Row 1: Somente Concluídos (Total Embarcado) */}
-              <tr className="bg-slate-950 border-t-2 border-slate-700 font-bold text-xs">
-                <td colSpan={5} className="py-3 px-3 sm:px-4 text-emerald-300 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>TOTAL EMBARCADO ({filteredTotals.concludedCount} navios concluídos)</span>
-                </td>
-                <td className="py-3 px-3 text-right font-mono text-cyan-300">
-                  {filteredTotals.concludedScTotal.toLocaleString('pt-BR')}
-                </td>
-                <td className="py-3 px-3 text-right font-mono text-emerald-300">
-                  {filteredTotals.concludedSqTotal.toLocaleString('pt-BR')}
-                </td>
-                <td className="py-3 px-3 sm:px-4 text-right font-mono text-white text-sm font-black">
-                  {filteredTotals.concludedVolume.toLocaleString('pt-BR')} t
-                </td>
-                <td colSpan={2} className="py-3 px-3 text-center text-slate-400 text-[11px] font-mono">
-                  SALINOR: {filteredTotals.concludedSalinor.toLocaleString('pt-BR')} t | SDB: {filteredTotals.concludedSdb.toLocaleString('pt-BR')} t
-                </td>
-              </tr>
-            </tfoot>
+
           </table>
         </div>
       </div>

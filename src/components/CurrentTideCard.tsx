@@ -3,7 +3,6 @@ import { ArrowUpRight, ArrowDownRight, Minus, Waves, Clock, Compass, Wind, Spark
 import { CurrentTideState } from '../utils/tideCalculations';
 import { PortConfig, WeatherData } from '../types/maritime';
 import { SALT_SHIPMENTS_2026, getActiveAndNextVessel } from '../data/saltShipmentsData';
-import { translations, Language } from '../utils/i18n';
 
 interface CurrentTideCardProps {
   tideState: CurrentTideState;
@@ -13,7 +12,6 @@ interface CurrentTideCardProps {
   onSimulateTime?: (date: Date) => void;
   isSimulated?: boolean;
   onResetSimulation?: () => void;
-  language?: Language;
 }
 
 export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
@@ -23,9 +21,7 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
   weather,
   isSimulated,
   onResetSimulation,
-  language = 'pt',
 }) => {
-  const t = translations[language];
   const {
     currentHeight,
     rateOfChangeCmPerHour,
@@ -42,7 +38,7 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
     currentWaterDepth,
   } = tideState;
 
-  // Active Operating Vessel & Next Vessel in Line-up
+  // Active Operating Vessel & Next Vessel in Line-up (referenced after the last concluded vessel)
   const { operatingVessel, nextPlannedVessel } = getActiveAndNextVessel(SALT_SHIPMENTS_2026);
 
   // Wind speed unit toggle ('knots' or 'kmh')
@@ -93,85 +89,221 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
   const windGustsKmH = Math.round(windGustsKnots * 1.852);
   const waveHeight = weather ? weather.waveHeightMeters : 0.8;
 
+  // Formatted speed according to current unit
+  const displayWindSpeed = windUnit === 'knots' ? `${windKnots} nós` : `${windKmH} km/h`;
+  const displayWindGust = windUnit === 'knots' ? `${windGustsKnots} kts` : `${windGustsKmH} km/h`;
+
+  // Wind gust alert threshold: 60 km/h (~32.4 knots)
   const isGustAlert = windGustsKmH >= 60;
+  const isGustWarning = windGustsKmH >= 45 && !isGustAlert;
 
   return (
-    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-2xl relative overflow-hidden backdrop-blur-md">
-      {/* Background glow accent */}
-      <div className="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 md:p-6 shadow-xl relative overflow-hidden text-slate-100">
+      {/* Background ocean ambient glow */}
+      <div className="absolute -right-16 -top-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header Info & Simulation Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-cyan-950/80 border border-cyan-500/30 rounded-xl text-cyan-400 shadow-inner">
-            <Waves className="w-6 h-6 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-white tracking-wide">{t.currentWaterLevel}</h2>
-              {isSimulated && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                  {language === 'en' ? 'Simulated' : 'Simulação'}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-400 font-mono">
-              {port.name} • {currentTime.toLocaleDateString(language === 'en' ? 'en-US' : 'pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-            </p>
-          </div>
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800 relative z-10">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold tracking-wider text-cyan-400 uppercase flex items-center gap-1.5 font-mono">
+            <Waves className="w-4 h-4" />
+            Nível da Maré em Tempo Real
+          </h2>
+          {isSimulated && (
+            <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              MODO SIMULAÇÃO
+            </span>
+          )}
         </div>
 
-        {/* Action button if simulated */}
-        {isSimulated && onResetSimulation && (
-          <button
-            onClick={onResetSimulation}
-            className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-xl transition shadow-lg flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <Clock className="w-3.5 h-3.5" />
-            {t.resetSimulation}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {operatingVessel ? (
+            <div className="px-3 py-1.5 rounded-xl bg-slate-950/90 border border-amber-500/50 text-amber-300 shadow-md flex items-center gap-2.5">
+              <div className="relative flex items-center justify-center shrink-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping absolute opacity-75" />
+                <span className="w-2 h-2 rounded-full bg-amber-400 relative" />
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                    <Ship className="w-2.5 h-2.5 text-amber-400" />
+                    <span>Navio em Operação</span>
+                  </span>
+                  <span className="text-xs font-black text-white font-mono">
+                    {operatingVessel.vesselName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-300">
+                  <span className="text-slate-600 hidden sm:inline">•</span>
+                  <span className="font-semibold">
+                    {operatingVessel.totalVolumeTons.toLocaleString('pt-BR')} t{' '}
+                    {operatingVessel.scVolumeTons > 0 && operatingVessel.sqVolumeTons > 0
+                      ? 'SC/SQ'
+                      : operatingVessel.scVolumeTons > 0
+                      ? 'SC'
+                      : 'SQ'}
+                  </span>
+                  <span className="text-slate-600 hidden md:inline">•</span>
+                  <span className="text-slate-300 hidden md:inline">{operatingVessel.shipper}</span>
+                </div>
+              </div>
+            </div>
+          ) : nextPlannedVessel ? (
+            <div className={`px-3 py-1.5 rounded-xl bg-slate-950/90 border shadow-md flex items-center gap-2.5 ${
+              nextPlannedVessel.status === 'Confirmado'
+                ? 'border-indigo-500/60 text-indigo-300'
+                : 'border-cyan-500/50 text-cyan-300'
+            }`}>
+              <div className="relative flex items-center justify-center shrink-0">
+                <Clock className={`w-3.5 h-3.5 ${nextPlannedVessel.status === 'Confirmado' ? 'text-indigo-400' : 'text-cyan-400'}`} />
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1 border ${
+                    nextPlannedVessel.status === 'Confirmado'
+                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                      : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                  }`}>
+                    <Calendar className="w-2.5 h-2.5" />
+                    <span>{nextPlannedVessel.status === 'Confirmado' ? 'Próximo Confirmado' : 'Próximo Previsto'}</span>
+                  </span>
+                  <span className="text-xs font-black text-white font-mono">
+                    {nextPlannedVessel.vesselName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-300">
+                  <span className="text-slate-600 hidden sm:inline">•</span>
+                  <span className="text-amber-300 font-semibold">
+                    {nextPlannedVessel.etb ? `ETB ${nextPlannedVessel.etb.split(' ')[0]}` : `ETA ${nextPlannedVessel.eta.split(' ')[0]}`}
+                  </span>
+                  <span className="text-slate-600 hidden sm:inline">•</span>
+                  <span className="font-semibold text-white">
+                    {nextPlannedVessel.totalVolumeTons.toLocaleString('pt-BR')} t{' '}
+                    {nextPlannedVessel.scVolumeTons > 0 && nextPlannedVessel.sqVolumeTons > 0
+                      ? 'SC/SQ'
+                      : nextPlannedVessel.scVolumeTons > 0
+                      ? 'SC'
+                      : 'SQ'}
+                  </span>
+                  <span className="text-slate-600 hidden md:inline">•</span>
+                  <span className="text-slate-300 hidden md:inline">{nextPlannedVessel.shipper}</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-emerald-500/40 text-emerald-300 shadow-sm flex items-center gap-2">
+              <Anchor className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="text-[11px] font-medium text-slate-300 flex items-center gap-1.5">
+                <span className="font-bold text-emerald-400 uppercase text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
+                  Berço Disponível
+                </span>
+                <span className="hidden sm:inline text-slate-400">Terminal Livre</span>
+              </div>
+            </div>
+          )}
+
+          {isSimulated && onResetSimulation && (
+            <button
+              onClick={onResetSimulation}
+              className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition"
+            >
+              Voltar ao Tempo Real
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Main 3-Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-5">
-        {/* Left: Tide Height Gauge & Trend */}
-        <div className="lg:col-span-5 flex flex-col justify-between bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
-                {t.currentWaterLevel}
-              </span>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl sm:text-4xl font-black font-mono text-cyan-300">
-                  {currentHeight.toFixed(2)}
-                </span>
-                <span className="text-lg font-bold text-slate-400">m</span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1 font-mono">
-                {t.currentDepth}: <span className="text-emerald-400 font-bold">{currentWaterDepth.toFixed(2)} m</span>
-              </p>
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-5 items-center relative z-10">
+        {/* Left: Height Number, Depth & Instantaneous Wind */}
+        <div className="lg:col-span-5 flex items-center gap-5">
+          {/* Vertical Level Tube Visualizer */}
+          <div className="relative w-12 h-48 bg-slate-950 rounded-2xl border-2 border-slate-800 overflow-hidden flex flex-col justify-end p-1 shadow-inner shrink-0">
+            {/* Scale markers */}
+            <div className="absolute inset-0 flex flex-col justify-between py-2 px-1 text-[8px] font-mono text-slate-600 pointer-events-none select-none">
+              <span className="text-right">4.0m</span>
+              <span className="text-right">3.0m</span>
+              <span className="text-right">2.0m</span>
+              <span className="text-right">1.0m</span>
+              <span className="text-right">0.0m</span>
             </div>
 
-            {/* Visual Gauge Bar */}
-            <div className="w-6 h-28 bg-slate-900 rounded-full border border-slate-800 relative overflow-hidden flex flex-col justify-end p-0.5">
-              <div
-                className="w-full bg-gradient-to-t from-cyan-600 to-emerald-400 rounded-full transition-all duration-700 shadow-lg"
-                style={{ height: `${heightPercent}%` }}
-              />
+            {/* Mean sea level line marker */}
+            <div
+              className="absolute w-full left-0 border-t border-dashed border-cyan-400/50 z-20"
+              style={{ bottom: `${(port.meanLevel / maxScale) * 100}%` }}
+              title={`Nível Médio: ${port.meanLevel}m`}
+            />
+
+            {/* Animated Water Column */}
+            <div
+              className="w-full bg-gradient-to-t from-blue-700 via-cyan-600 to-cyan-400 rounded-xl transition-all duration-700 ease-out relative overflow-hidden shadow-lg shadow-cyan-500/30"
+              style={{ height: `${heightPercent}%` }}
+            >
+              {/* Wave surface shimmer */}
+              <div className="absolute top-0 left-0 right-0 h-2 bg-white/40 animate-pulse" />
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+          {/* Large Height Display + Integrated Wind */}
+          <div className="flex-1 space-y-2">
+            <div>
+              <span className="text-xs uppercase font-medium text-slate-400 block tracking-wider">
+                Altura Instantânea
+              </span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-4xl md:text-5xl font-black font-mono tracking-tight text-white">
+                  {currentHeight.toFixed(2)}
+                </span>
+                <span className="text-lg font-bold text-cyan-400 font-mono">metros</span>
+              </div>
+            </div>
+
+            {/* Depth over shallowest bar bank */}
+            <div className="text-xs font-mono text-slate-300 flex items-center justify-between gap-1.5 bg-slate-950/60 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+              <span className="text-slate-400">Lâmina na Barra:</span>
+              <span className="text-cyan-300 font-bold">{currentWaterDepth.toFixed(2)} m</span>
+            </div>
+
+            {/* Integrated Wind Speed & Direction pill with click-to-toggle and Red Alert for Gust >= 60km/h */}
+            <button
+              onClick={() => handleToggleWindUnit(windUnit === 'knots' ? 'kmh' : 'knots')}
+              className={`w-full text-xs font-mono px-2.5 py-1.5 rounded-lg flex items-center justify-between gap-2 shadow-sm transition text-left cursor-pointer border ${
+                isGustAlert
+                  ? 'bg-rose-950/80 hover:bg-rose-900/80 border-rose-500 text-rose-100 animate-pulse ring-2 ring-rose-500/50'
+                  : isGustWarning
+                  ? 'bg-amber-950/60 hover:bg-amber-900/60 border-amber-500/70 text-amber-100'
+                  : 'bg-emerald-950/40 hover:bg-emerald-950/60 border-emerald-600/40 hover:border-emerald-500 text-emerald-200'
+              }`}
+              title="Clique para alternar entre Nós (knots) e km/h"
+            >
+              <div className="flex items-center gap-1.5">
+                <Wind className={`w-4 h-4 shrink-0 ${isGustAlert ? 'text-rose-400 animate-spin' : isGustWarning ? 'text-amber-400' : 'text-emerald-400'}`} />
+                <span className={isGustAlert ? 'text-rose-200' : 'text-slate-300'}>Vento:</span>
+                <span className={`font-bold ${isGustAlert ? 'text-rose-200' : isGustWarning ? 'text-amber-300' : 'text-emerald-300'}`}>
+                  {displayWindSpeed} {windDirLabel}
+                </span>
+              </div>
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${
+                isGustAlert
+                  ? 'bg-rose-600 text-white border-rose-400 uppercase tracking-wider'
+                  : isGustWarning
+                  ? 'bg-amber-900/80 text-amber-200 border-amber-600/60'
+                  : 'bg-emerald-900/50 text-emerald-300 border-emerald-700/40'
+              }`}>
+                {isGustAlert && <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping inline-block" />}
+                Rajada {displayWindGust}
+              </span>
+            </button>
+
             {/* Trend Badge */}
             <div className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${getTrendColor()}`}>
               {getTrendIcon()}
               <div>
-                <span className="block font-bold">
-                  {trend === 'ENCHENDO' ? t.rising : trend === 'VAZANDO' ? t.falling : t.slack}
-                </span>
+                <span className="block font-bold">{trendDescription}</span>
                 <span className="text-[10px] font-mono text-slate-300">
-                  {rateOfChangeCmPerHour > 0 ? `+${rateOfChangeCmPerHour}` : rateOfChangeCmPerHour} cm/h
+                  {rateOfChangeCmPerHour > 0 ? `+${rateOfChangeCmPerHour}` : rateOfChangeCmPerHour} cm/hora
                 </span>
               </div>
             </div>
@@ -183,9 +315,9 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
           <div className="flex items-center justify-between text-xs font-mono pb-2 border-b border-slate-800">
             <span className="text-slate-400 flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-cyan-400" />
-              {language === 'en' ? 'Semidiurnal Cycle' : 'Ciclo Semidiurno'}
+              Ciclo Semidiurno
             </span>
-            <span className="font-bold text-cyan-300">{percentCycle}% {language === 'en' ? 'completed' : 'concluído'}</span>
+            <span className="font-bold text-cyan-300">{percentCycle}% concluído</span>
           </div>
 
           {/* Progress bar */}
@@ -200,16 +332,16 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
             {/* Previous Event */}
             <div className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
               <span className="text-[10px] uppercase text-slate-400 block">
-                {previousEvent.type === 'high' ? (language === 'en' ? 'Last High Tide' : 'Última Preamar') : (language === 'en' ? 'Last Low Tide' : 'Última Baixa-mar')}
+                {previousEvent.type === 'high' ? 'Última Preamar' : 'Última Baixa-mar'}
               </span>
               <span className="text-sm font-bold text-slate-200">{previousEvent.timeStr}</span>
               <span className="block text-[11px] text-cyan-400 font-semibold">{previousEvent.height.toFixed(2)} m</span>
             </div>
 
-            {/* Next High Tide Event */}
+            {/* Next High Tide Event (Sempre Próxima Preamar) */}
             <div className="bg-cyan-950/40 p-2.5 rounded-lg border border-cyan-800/50">
               <span className="text-[10px] uppercase text-cyan-300 font-semibold block">
-                {t.nextHighTide}
+                Próxima Preamar
               </span>
               <span className="text-sm font-bold text-white">{highEventToDisplay.timeStr}</span>
               <span className="block text-[11px] text-emerald-400 font-bold">{highEventToDisplay.height.toFixed(2)} m</span>
@@ -218,7 +350,7 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
 
           {/* Countdown pill */}
           <div className="mt-3 text-center text-xs font-mono py-1 rounded-md bg-slate-900 text-slate-300 border border-slate-800">
-            {language === 'en' ? 'Next High Tide in' : 'Faltam'} <span className="text-cyan-400 font-bold">{hoursToNextHigh}h {minsToNextHigh}m</span>
+            Faltam <span className="text-cyan-400 font-bold">{hoursToNextHigh}h {minsToNextHigh}m</span> para a Preamar
           </div>
         </div>
 
@@ -233,10 +365,10 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
               <span className="text-[10px] uppercase text-slate-400 tracking-wider font-semibold flex items-center gap-1.5">
                 <Wind className={`w-3.5 h-3.5 ${isGustAlert ? 'text-rose-400' : 'text-cyan-400'}`} />
-                {language === 'en' ? 'Wind & Sea' : 'Vento & Mar'}
+                Vento & Mar
                 {isGustAlert && (
                   <span className="text-[9px] px-1.5 py-0.2 bg-rose-600 text-white font-bold rounded animate-pulse">
-                    GUST ALERT
+                    ALERTA RAJADA
                   </span>
                 )}
               </span>
@@ -250,9 +382,9 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
                       ? 'bg-emerald-600 text-white font-bold shadow'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
-                  title="Knots"
+                  title="Exibir em Nós (Knots)"
                 >
-                  kts
+                  nós
                 </button>
                 <button
                   onClick={() => handleToggleWindUnit('kmh')}
@@ -261,7 +393,7 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
                       ? 'bg-emerald-600 text-white font-bold shadow'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
-                  title="km/h"
+                  title="Exibir em km/h"
                 >
                   km/h
                 </button>
@@ -270,17 +402,17 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
 
             <div className="text-[11px] font-mono text-slate-300 space-y-1 mt-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">{language === 'en' ? 'Speed:' : 'Velocidade:'}</span>
+                <span className="text-slate-400">Velocidade:</span>
                 <span className="font-bold text-emerald-300">
-                  {windUnit === 'knots' ? `${windKnots} kts (${windKmH} km/h)` : `${windKmH} km/h (${windKnots} kts)`}
+                  {windUnit === 'knots' ? `${windKnots} nós (${windKmH} km/h)` : `${windKmH} km/h (${windKnots} kts)`}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">{language === 'en' ? 'Direction:' : 'Direção:'}</span>
+                <span className="text-slate-400">Direção:</span>
                 <span className="font-bold text-white">{windDirLabel} ({windDirDeg}°)</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">{language === 'en' ? 'Waves:' : 'Ondas (Vaga):'}</span>
+                <span className="text-slate-400">Ondas (Vaga):</span>
                 <span className="font-bold text-cyan-300">{waveHeight.toFixed(1)} m</span>
               </div>
             </div>
@@ -289,16 +421,16 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
           {/* Regime */}
           <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
             <span className="text-[10px] uppercase text-slate-400 block tracking-wider font-semibold">
-              {t.tidalCoefficient}
+              Regime de Maré
             </span>
             <div className="flex items-center justify-between mt-1">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                {coefficientType}
+                MARÉ DE {coefficientType}
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              {t.amplitude}: <span className="text-slate-200 font-mono font-bold">{amplitude.toFixed(2)} m</span>
+              Amplitude: <span className="text-slate-200 font-mono font-bold">{amplitude.toFixed(2)} m</span>
             </p>
           </div>
         </div>
@@ -306,3 +438,4 @@ export const CurrentTideCard: React.FC<CurrentTideCardProps> = ({
     </div>
   );
 };
+

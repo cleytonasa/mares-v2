@@ -44,24 +44,6 @@ export default function App() {
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(getSavedNotificationPreferences());
   const [isNotifModalOpen, setIsNotifModalOpen] = useState<boolean>(false);
 
-  // Language state ('pt' | 'en')
-  const [language, setLanguage] = useState<'pt' | 'en'>(() => {
-    try {
-      const saved = localStorage.getItem('preferred_language');
-      return saved === 'en' ? 'en' : 'pt';
-    } catch {
-      return 'pt';
-    }
-  });
-
-  const toggleLanguage = () => {
-    const nextLang = language === 'pt' ? 'en' : 'pt';
-    setLanguage(nextLang);
-    try {
-      localStorage.setItem('preferred_language', nextLang);
-    } catch {}
-  };
-
   // Custom User Location state (starts with default, attempts real GPS)
   const [userLocation, setUserLocation] = useState<CustomUserLocation>(INITIAL_USER_LOCATION);
 
@@ -183,8 +165,6 @@ export default function App() {
         userLocation={userLocation}
         notificationsEnabled={notifPrefs.enabled}
         onOpenNotifications={() => setIsNotifModalOpen(true)}
-        language={language}
-        onToggleLanguage={toggleLanguage}
       />
 
       {/* Main Content Area */}
@@ -195,7 +175,7 @@ export default function App() {
             <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
             <div>
               <span className="font-bold uppercase tracking-wider block text-[11px] sm:text-xs text-amber-300">
-                {language === 'en' ? 'Weather & Tide Conditions' : 'Condições Meteorológicas & Maré'}
+                Condições Meteorológicas & Maré
               </span>
               <span className="text-[11px] sm:text-xs">{activeAlerts.join(' • ')}</span>
             </div>
@@ -213,36 +193,32 @@ export default function App() {
               weather={weather}
               isSimulated={Boolean(simulatedTime)}
               onResetSimulation={handleResetSimulation}
-              language={language}
             />
 
-            {/* 2. 48h Harmonic Variation Curve */}
+            {/* 2. 48h Harmonic Variation Curve (Curva Harmônica de Variação - 48 Horas) */}
             <TideChart24h
               port={activePort}
               selectedDate={selectedDate}
               onChangeDate={setSelectedDate}
               currentTime={effectiveTime}
-              language={language}
             />
 
-            {/* 3. 7-Day Weekly Weather & Marine Forecast */}
+            {/* 3. 7-Day Weekly Weather & Marine Forecast (Previsão do Tempo 7 Dias) */}
             <WeeklyWeatherForecast
               forecast={weather?.weeklyForecast}
               port={activePort}
               loading={weatherLoading}
-              language={language}
             />
 
-            {/* 4. Wind Gusts Line Chart */}
+            {/* 4. Wind Gusts Line Chart (Picos de Rajadas - Diário 24h & Mensal) */}
             <WindGustChart
               port={activePort}
               weather={weather}
               currentTime={effectiveTime}
-              language={language}
             />
 
-            {/* 5. Pluviometer & Rainfall Monitor */}
-            <RainfallChart port={activePort} language={language} />
+            {/* 5. Pluviometer & Rainfall Monitor (Chuva no Período - Diário / Mensal) */}
+            <RainfallChart port={activePort} />
 
             {/* Quick Actions & Navigation Module */}
             <div className="bg-slate-900/90 rounded-xl sm:rounded-2xl border border-slate-800 p-2.5 sm:p-4 shadow-xl text-slate-100">
@@ -255,13 +231,13 @@ export default function App() {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[10px] sm:text-[11px] font-bold text-cyan-400 uppercase tracking-wide truncate">
-                        {language === 'en' ? 'Official Table' : 'Tábua Oficial'}
+                        Tábua Oficial
                       </span>
                       <Table className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 group-hover:text-cyan-400 shrink-0 transition" />
                     </div>
                     <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">DHN 2026</h4>
                     <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-snug line-clamp-2">
-                      {language === 'en' ? '365 days, lunar phases, springs & neaps.' : '365 dias, fases lunares, sizígias e quadraturas.'}
+                      365 dias, fases lunares, sizígias e quadraturas.
                     </p>
                   </div>
                 </div>
@@ -274,13 +250,13 @@ export default function App() {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[10px] sm:text-[11px] font-bold text-cyan-400 uppercase tracking-wide truncate">
-                        {language === 'en' ? 'Nautical Map' : 'Carta Náutica'}
+                        Carta Náutica
                       </span>
                       <Map className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 group-hover:text-cyan-400 shrink-0 transition" />
                     </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">{language === 'en' ? 'Map & Satellite' : 'Mapa & Satélite'}</h4>
+                    <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">Mapa & Satélite</h4>
                     <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-snug line-clamp-2">
-                      {language === 'en' ? 'TERMISA, Macau Bar and real-time GPS.' : 'TERMISA, Barra de Macau e GPS em tempo real.'}
+                      TERMISA, Barra de Macau e GPS em tempo real.
                     </p>
                   </div>
                 </div>
@@ -293,13 +269,13 @@ export default function App() {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[10px] sm:text-[11px] font-bold text-cyan-400 uppercase tracking-wide truncate">
-                        {language === 'en' ? 'Weather' : 'Meteorologia'}
+                        Meteorologia
                       </span>
                       <CloudSun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 group-hover:text-cyan-400 shrink-0 transition" />
                     </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">{language === 'en' ? 'Winds & Waves' : 'Ventos & Ondas'}</h4>
+                    <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">Ventos & Ondas</h4>
                     <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-snug line-clamp-2">
-                      {language === 'en' ? 'Trade winds, gusts, pressure and waves.' : 'Ventos alísios, rajadas, pressão e ondas.'}
+                      Ventos alísios, rajadas, pressão e ondas.
                     </p>
                   </div>
                 </div>
@@ -316,9 +292,9 @@ export default function App() {
                       </span>
                       <Ship className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 group-hover:text-cyan-400 shrink-0 transition" />
                     </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">{language === 'en' ? 'Shipment Dashboard' : 'Painel de Embarque'}</h4>
+                    <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">Painel de Embarque</h4>
                     <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-snug line-clamp-2">
-                      {language === 'en' ? '1.1M Tons, completed vessels, charts & lineup.' : '1.1M Tons, navios concluídos, gráficos e line-up.'}
+                      1.1M Tons, navios concluídos, gráficos e line-up.
                     </p>
                   </div>
                 </div>
@@ -335,7 +311,6 @@ export default function App() {
             userLocation={userLocation}
             onSelectPort={setSelectedPortId}
             onUpdateUserLocation={setUserLocation}
-            language={language}
           />
         )}
 
@@ -349,7 +324,6 @@ export default function App() {
               setSimulatedTime(d);
               setActiveTab('dashboard');
             }}
-            language={language}
           />
         )}
 
@@ -360,13 +334,12 @@ export default function App() {
             selectedDate={selectedDate}
             weather={weather}
             currentTime={effectiveTime}
-            language={language}
           />
         )}
 
         {/* Tab 5: Salt Shipments & Line-Up INTERSAL */}
         {activeTab === 'shipments' && (
-          <SaltShipmentsDashboard language={language} />
+          <SaltShipmentsDashboard />
         )}
       </main>
 
@@ -376,10 +349,9 @@ export default function App() {
         onClose={() => setIsAlertModalOpen(false)}
         thresholds={thresholds}
         onSaveThresholds={setThresholds}
-        language={language}
       />
 
-      {/* Push Notifications Modal */}
+      {/* Push Notifications Modal (Preamar & Hourly) */}
       <NotificationModal
         isOpen={isNotifModalOpen}
         onClose={() => setIsNotifModalOpen(false)}
@@ -387,7 +359,6 @@ export default function App() {
         onSavePreferences={handleSaveNotifPrefs}
         port={activePort}
         tideState={currentTideState}
-        language={language}
       />
     </div>
   );

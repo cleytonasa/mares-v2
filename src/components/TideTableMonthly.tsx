@@ -2,122 +2,231 @@ import React, { useState } from 'react';
 import { Calendar, Search, Printer, Download, Sparkles, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PortConfig, DayTides } from '../types/maritime';
 import { getMonthTides } from '../data/tideData2026';
-import { translations, Language } from '../utils/i18n';
 
 interface TideTableMonthlyProps {
   port: PortConfig;
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
-  language?: Language;
 }
 
-const MONTH_NAMES_PT = [
+const MONTH_NAMES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-];
-
-const MONTH_NAMES_EN = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
 export const TideTableMonthly: React.FC<TideTableMonthlyProps> = ({
   port,
   selectedDate,
   onSelectDate,
-  language = 'pt',
 }) => {
-  const t = translations[language];
   const [selectedMonth, setSelectedMonth] = useState<number>(selectedDate.getMonth() + 1);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const year = 2026;
 
   const monthTides = getMonthTides(year, selectedMonth);
-  const monthNames = language === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
 
   const filteredDays = monthTides.filter((day) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
-    return day.dateStr.toLowerCase().includes(term) || day.dayOfWeek.toLowerCase().includes(term);
+    const dayStr = String(day.day).padStart(2, '0');
+    const dow = day.dayOfWeek.toLowerCase();
+    return dayStr.includes(term) || dow.includes(term);
   });
 
+  const getMoonIcon = (phase?: string | null) => {
+    switch (phase) {
+      case 'full':
+        return <span className="text-yellow-300" title="Lua Cheia (Sizígia)">🌕</span>;
+      case 'new':
+        return <span className="text-slate-400" title="Lua Nova (Sizígia)">🌑</span>;
+      case 'first_quarter':
+        return <span className="text-cyan-300" title="Quarto Crescente">🌓</span>;
+      case 'last_quarter':
+        return <span className="text-cyan-300" title="Quarto Minguante">🌗</span>;
+      default:
+        return null;
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportCSV = () => {
+    let csv = `Data,DiaSemana,FaseLua,Hora1,Alt1_m,Hora2,Alt2_m,Hora3,Alt3_m,Hora4,Alt4_m\n`;
+    monthTides.forEach((dt) => {
+      const dateStr = `${String(dt.day).padStart(2, '0')}/${String(selectedMonth).padStart(2, '0')}/${year}`;
+      const evts = dt.events.map(e => `${e.time},${(e.height * port.heightMultiplier).toFixed(2)}`).join(',');
+      csv += `${dateStr},${dt.dayOfWeek},${dt.moonPhase || ''},${evts}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Tabua_Mares_${port.id}_${selectedMonth}_${year}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-xl relative overflow-hidden backdrop-blur-md">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 md:p-6 shadow-xl text-slate-100 space-y-5">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
         <div>
-          <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-cyan-400" />
-            {t.monthlyTableTitle}
-          </h3>
-          <p className="text-xs text-slate-400 mt-0.5">{t.monthlyTableSubtitle}</p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-bold text-white uppercase tracking-tight flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-cyan-400" />
+              Tábua Anual de Marés {year}
+            </h3>
+            <span className="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/50 text-xs font-mono font-bold">
+              {port.name}
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mt-1 font-mono">
+            {port.fullName} • Nível Médio {port.meanLevel}m
+          </p>
         </div>
 
-        {/* Month Selector */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="bg-slate-950 text-slate-100 text-xs font-mono font-bold px-3 py-1.5 rounded-xl border border-slate-700/80 focus:outline-none focus:border-cyan-500"
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition"
           >
-            {monthNames.map((m, idx) => (
-              <option key={idx + 1} value={idx + 1}>
-                {m} 2026
-              </option>
-            ))}
-          </select>
+            <Download className="w-3.5 h-3.5 text-cyan-400" />
+            Exportar CSV
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-semibold text-white shadow-md shadow-cyan-600/30 transition"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Imprimir Tábua
+          </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto max-h-[500px] rounded-xl border border-slate-800">
-        <table className="w-full text-left border-collapse text-xs font-mono">
-          <thead className="bg-slate-950 text-slate-300 sticky top-0 uppercase tracking-wider text-[10px] border-b border-slate-800 z-10">
-            <tr>
-              <th className="p-3">{language === 'en' ? 'Date' : 'Data'}</th>
-              <th className="p-3">{language === 'en' ? 'Day' : 'Dia da Semana'}</th>
-              <th className="p-3">{language === 'en' ? 'High & Low Tides (DHN 2026)' : 'Preamares e Baixa-mares (DHN 2026)'}</th>
-              <th className="p-3 text-right">{language === 'en' ? 'Action' : 'Ação'}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/60 bg-slate-900/40 text-slate-200">
-            {filteredDays.map((day) => {
-              const dObj = new Date(year, selectedMonth - 1, day.day);
-              return (
-                <tr key={day.day} className="hover:bg-slate-800/50 transition">
-                  <td className="p-3 font-bold text-cyan-300">{day.dateStr}</td>
-                  <td className="p-3 text-slate-400 capitalize">{day.dayOfWeek}</td>
-                  <td className="p-3">
-                    <div className="flex flex-wrap gap-2">
-                      {day.events.map((evt, idx) => {
-                        const adjH = evt.height * port.heightMultiplier;
-                        const isHigh = evt.type === 'high';
-                        return (
-                          <span
-                            key={idx}
-                            className={`px-2 py-1 rounded-lg border text-[11px] font-bold ${
-                              isHigh
-                                ? 'bg-cyan-950/60 border-cyan-800/60 text-cyan-300'
-                                : 'bg-slate-950/60 border-slate-800 text-slate-300'
-                            }`}
-                          >
-                            {isHigh ? (language === 'en' ? 'High' : 'P') : (language === 'en' ? 'Low' : 'B')} {evt.time} ({adjH.toFixed(2)}m)
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => onSelectDate(dObj)}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-cyan-600 hover:text-white text-slate-300 rounded-lg transition"
+      {/* Month Selector Pills */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {MONTH_NAMES.map((mName, idx) => {
+          const mNum = idx + 1;
+          const isSelected = selectedMonth === mNum;
+          return (
+            <button
+              key={mNum}
+              onClick={() => setSelectedMonth(mNum)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                isSelected
+                  ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30'
+                  : 'bg-slate-950 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              {mName}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Filter / Search Bar */}
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Filtrar dia (ex: 15 ou DOM)..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+          />
+        </div>
+
+        <span className="text-xs font-mono text-slate-400">
+          Mostrando {filteredDays.length} dias de {MONTH_NAMES[selectedMonth - 1]} {year}
+        </span>
+      </div>
+
+      {/* Grid of Day Cards matching the Official Navy Publication */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {filteredDays.map((dayTide) => {
+          const isToday =
+            selectedDate.getDate() === dayTide.day &&
+            selectedDate.getMonth() + 1 === selectedMonth;
+
+          return (
+            <div
+              key={dayTide.day}
+              onClick={() => {
+                const newD = new Date(year, selectedMonth - 1, dayTide.day);
+                onSelectDate(newD);
+              }}
+              className={`p-3 rounded-xl border transition cursor-pointer flex flex-col justify-between ${
+                isToday
+                  ? 'bg-cyan-950/80 border-cyan-500 shadow-lg shadow-cyan-950'
+                  : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
+              }`}
+            >
+              {/* Day Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg font-black font-mono text-white">
+                    {String(dayTide.day).padStart(2, '0')}
+                  </span>
+                  <span className="text-xs font-bold uppercase text-cyan-400 font-mono">
+                    {dayTide.dayOfWeek}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {dayTide.moonPhase && getMoonIcon(dayTide.moonPhase)}
+                  {isToday && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500 text-slate-950 uppercase font-mono">
+                      HOJE
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tides Events List */}
+              <div className="space-y-1.5 my-2.5">
+                {dayTide.events.map((evt, eIdx) => {
+                  const adjustedHeight = evt.height * port.heightMultiplier;
+                  return (
+                    <div
+                      key={eIdx}
+                      className="flex items-center justify-between text-xs font-mono"
                     >
-                      {language === 'en' ? 'Simulate' : 'Simular'}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                      <span className="text-slate-400 font-bold">
+                        {evt.time}
+                      </span>
+                      <span
+                        className={`font-bold ${
+                          evt.type === 'high' ? 'text-cyan-300' : 'text-slate-300'
+                        }`}
+                      >
+                        {adjustedHeight.toFixed(2)} m
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Daily Amplitude Footer */}
+              <div className="pt-1.5 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono text-slate-400">
+                <span>Amplitude:</span>
+                <span className="font-bold text-slate-200">
+                  {(
+                    (Math.max(...dayTide.events.map(e => e.height)) -
+                      Math.min(...dayTide.events.map(e => e.height))) *
+                    port.heightMultiplier
+                  ).toFixed(2)}{' '}
+                  m
+                </span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
