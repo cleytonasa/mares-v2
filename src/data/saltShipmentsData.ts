@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Outubro de 2026
-// Atualizado em: 20/10/2026 10:08
+// Atualizado em: 22/10/2026 09:52
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -859,7 +859,7 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 28346,
     "eta": "19/10/2026 15:00",
     "etb": "20/10/2026 09:48",
-    "etd": "23/10/2026 07:00",
+    "etd": "24/10/2026 07:00",
     "status": "Em operação",
     "scVolumeTons": 28100,
     "sqVolumeTons": 0,
@@ -878,8 +878,8 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "loaMeters": 199.98,
     "dwt": 34564,
     "eta": "19/10/2026 19:00",
-    "etb": "23/10/2026 09:00",
-    "etd": "25/10/2026 10:00",
+    "etb": "24/10/2026 09:00",
+    "etd": "26/10/2026 10:00",
     "status": "Previsto",
     "scVolumeTons": 21400,
     "sqVolumeTons": 0,
@@ -898,34 +898,14 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "loaMeters": 199.99,
     "dwt": 37379,
     "eta": "24/10/2026 00:01",
-    "etb": "25/10/2026 12:00",
-    "etd": "27/10/2026 14:00",
+    "etb": "26/10/2026 12:00",
+    "etd": "29/10/2026 07:00",
     "status": "Previsto",
-    "scVolumeTons": 21100,
+    "scVolumeTons": 31000,
     "sqVolumeTons": 0,
-    "totalVolumeTons": 21100,
+    "totalVolumeTons": 31000,
     "trafficType": "EXP",
     "trafficLabel": "Exportação",
-    "shipper": "SALINOR",
-    "month": 10,
-    "monthName": "Outubro",
-    "year": 2026
-  },
-  {
-    "id": "sln2026038",
-    "visitCode": "SLN2026038",
-    "vesselName": "TBN",
-    "loaMeters": 0,
-    "dwt": 0,
-    "eta": "29/10/2026 00:01",
-    "etb": "29/10/2026 08:00",
-    "etd": "31/10/2026 11:00",
-    "status": "Previsto",
-    "scVolumeTons": 33000,
-    "sqVolumeTons": 0,
-    "totalVolumeTons": 33000,
-    "trafficType": "CBT",
-    "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
     "month": 10,
     "monthName": "Outubro",
@@ -1164,29 +1144,29 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "monthName": "Outubro",
     "shortMonth": "Out",
     "year": 2026,
-    "vesselCount": 7,
+    "vesselCount": 6,
     "concludedCount": 3,
     "operatingCount": 1,
     "confirmedCount": 0,
-    "plannedCount": 3,
+    "plannedCount": 2,
     "concludedTotalVolume": 96460,
     "concludedScTotal": 96460,
     "concludedSqTotal": 0,
-    "scTotal": 200060,
+    "scTotal": 176960,
     "sqTotal": 0,
-    "totalVolume": 200060,
-    "salinorVolume": 171960,
+    "totalVolume": 176960,
+    "salinorVolume": 148860,
     "sdbVolume": 28100,
     "salinorConcludedVolume": 96460,
     "sdbConcludedVolume": 0,
-    "expVolume": 134060,
-    "cbtVolume": 66000,
+    "expVolume": 143960,
+    "cbtVolume": 33000,
     "expConcludedVolume": 63460,
     "cbtConcludedVolume": 33000
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '20/10/2026 10:08';
+export const LINEUP_LAST_UPDATED = '22/10/2026 09:52';
 
 export const OVERALL_TOTALS = {
   "concludedTotalTons": 1420779,
@@ -1210,9 +1190,9 @@ export const OVERALL_TOTALS = {
   "operatingTotalTons": 28100,
   "operatingVessels": 1,
   "confirmedVessels": 0,
-  "plannedTotalTons": 75500,
-  "plannedVessels": 3,
-  "totalProgrammedTons": 1524379
+  "plannedTotalTons": 52400,
+  "plannedVessels": 2,
+  "totalProgrammedTons": 1501279
 };
 
 /**
