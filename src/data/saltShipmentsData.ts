@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Outubro de 2026
-// Atualizado em: 22/10/2026 09:52
+// Atualizado em: 23/10/2026 09:02
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -879,7 +879,7 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 34564,
     "eta": "19/10/2026 19:00",
     "etb": "24/10/2026 09:00",
-    "etd": "26/10/2026 10:00",
+    "etd": "26/10/2026 07:00",
     "status": "Previsto",
     "scVolumeTons": 21400,
     "sqVolumeTons": 0,
@@ -898,7 +898,7 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "loaMeters": 199.99,
     "dwt": 37379,
     "eta": "24/10/2026 00:01",
-    "etb": "26/10/2026 12:00",
+    "etb": "26/10/2026 10:00",
     "etd": "29/10/2026 07:00",
     "status": "Previsto",
     "scVolumeTons": 31000,
@@ -1166,7 +1166,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '22/10/2026 09:52';
+export const LINEUP_LAST_UPDATED = '23/10/2026 09:02';
 
 export const OVERALL_TOTALS = {
   "concludedTotalTons": 1420779,
