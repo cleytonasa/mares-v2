@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Outubro de 2026
-// Atualizado em: 23/10/2026 09:02
+// Atualizado em: 24/10/2026 09:41
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -859,8 +859,8 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 28346,
     "eta": "19/10/2026 15:00",
     "etb": "20/10/2026 09:48",
-    "etd": "24/10/2026 07:00",
-    "status": "Em operação",
+    "etd": "24/10/2026 06:28",
+    "status": "Concluído",
     "scVolumeTons": 28100,
     "sqVolumeTons": 0,
     "totalVolumeTons": 28100,
@@ -877,10 +877,10 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "vesselName": "FEDERAL BERING",
     "loaMeters": 199.98,
     "dwt": 34564,
-    "eta": "19/10/2026 19:00",
-    "etb": "24/10/2026 09:00",
+    "eta": "19/10/2026 18:00",
+    "etb": "24/10/2026 08:30",
     "etd": "26/10/2026 07:00",
-    "status": "Previsto",
+    "status": "Em operação",
     "scVolumeTons": 21400,
     "sqVolumeTons": 0,
     "totalVolumeTons": 21400,
@@ -1145,12 +1145,12 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "shortMonth": "Out",
     "year": 2026,
     "vesselCount": 6,
-    "concludedCount": 3,
+    "concludedCount": 4,
     "operatingCount": 1,
     "confirmedCount": 0,
-    "plannedCount": 2,
-    "concludedTotalVolume": 96460,
-    "concludedScTotal": 96460,
+    "plannedCount": 1,
+    "concludedTotalVolume": 124560,
+    "concludedScTotal": 124560,
     "concludedSqTotal": 0,
     "scTotal": 176960,
     "sqTotal": 0,
@@ -1158,40 +1158,40 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "salinorVolume": 148860,
     "sdbVolume": 28100,
     "salinorConcludedVolume": 96460,
-    "sdbConcludedVolume": 0,
+    "sdbConcludedVolume": 28100,
     "expVolume": 143960,
     "cbtVolume": 33000,
-    "expConcludedVolume": 63460,
+    "expConcludedVolume": 91560,
     "cbtConcludedVolume": 33000
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '23/10/2026 09:02';
+export const LINEUP_LAST_UPDATED = '24/10/2026 09:41';
 
 export const OVERALL_TOTALS = {
-  "concludedTotalTons": 1420779,
-  "concludedScTotalTons": 1182626,
+  "concludedTotalTons": 1448879,
+  "concludedScTotalTons": 1210726,
   "concludedSqTotalTons": 238153,
-  "concludedVessels": 40,
+  "concludedVessels": 41,
   "concludedSalinorTons": 1239029,
-  "concludedSdbTons": 181750,
-  "concludedExpTons": 826946,
+  "concludedSdbTons": 209850,
+  "concludedExpTons": 855046,
   "concludedCbtTons": 593833,
-  "totalTons": 1420779,
-  "scTotalTons": 1182626,
+  "totalTons": 1448879,
+  "scTotalTons": 1210726,
   "sqTotalTons": 238153,
-  "totalVessels": 40,
+  "totalVessels": 41,
   "salinorTotalTons": 1239029,
-  "sdbTotalTons": 181750,
-  "expTotalTons": 826946,
+  "sdbTotalTons": 209850,
+  "expTotalTons": 855046,
   "cbtTotalTons": 593833,
-  "monthlyAverageTons": 142078,
-  "vesselAverageTons": 35519,
-  "operatingTotalTons": 28100,
+  "monthlyAverageTons": 144888,
+  "vesselAverageTons": 35339,
+  "operatingTotalTons": 21400,
   "operatingVessels": 1,
   "confirmedVessels": 0,
-  "plannedTotalTons": 52400,
-  "plannedVessels": 2,
+  "plannedTotalTons": 31000,
+  "plannedVessels": 1,
   "totalProgrammedTons": 1501279
 };
 
