@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Outubro de 2026
-// Atualizado em: 28/10/2026 09:38
+// Atualizado em: 28/10/2026 18:31
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -899,13 +899,33 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 37379,
     "eta": "24/10/2026 09:10",
     "etb": "26/10/2026 14:25",
-    "etd": "28/10/2026 11:30",
-    "status": "Em operação",
+    "etd": "28/10/2026 13:25",
+    "status": "Concluído",
     "scVolumeTons": 21000,
     "sqVolumeTons": 0,
     "totalVolumeTons": 21000,
     "trafficType": "EXP",
     "trafficLabel": "Exportação",
+    "shipper": "SALINOR",
+    "month": 10,
+    "monthName": "Outubro",
+    "year": 2026
+  },
+  {
+    "id": "sln2026038",
+    "visitCode": "SLN2026038",
+    "vesselName": "EKATERINA",
+    "loaMeters": 179.97,
+    "dwt": 39182,
+    "eta": "26/10/2026 07:50",
+    "etb": "28/10/2026 15:48",
+    "etd": "31/10/2026 15:00",
+    "status": "Em operação",
+    "scVolumeTons": 5000,
+    "sqVolumeTons": 33200,
+    "totalVolumeTons": 38200,
+    "trafficType": "CBT",
+    "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
     "month": 10,
     "monthName": "Outubro",
@@ -1144,55 +1164,55 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "monthName": "Outubro",
     "shortMonth": "Out",
     "year": 2026,
-    "vesselCount": 6,
-    "concludedCount": 5,
+    "vesselCount": 7,
+    "concludedCount": 6,
     "operatingCount": 1,
     "confirmedCount": 0,
     "plannedCount": 0,
-    "concludedTotalVolume": 145960,
-    "concludedScTotal": 145960,
+    "concludedTotalVolume": 166960,
+    "concludedScTotal": 166960,
     "concludedSqTotal": 0,
-    "scTotal": 166960,
-    "sqTotal": 0,
-    "totalVolume": 166960,
-    "salinorVolume": 138860,
+    "scTotal": 171960,
+    "sqTotal": 33200,
+    "totalVolume": 205160,
+    "salinorVolume": 177060,
     "sdbVolume": 28100,
-    "salinorConcludedVolume": 117860,
+    "salinorConcludedVolume": 138860,
     "sdbConcludedVolume": 28100,
     "expVolume": 133960,
-    "cbtVolume": 33000,
-    "expConcludedVolume": 112960,
+    "cbtVolume": 71200,
+    "expConcludedVolume": 133960,
     "cbtConcludedVolume": 33000
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '28/10/2026 09:38';
+export const LINEUP_LAST_UPDATED = '28/10/2026 18:31';
 
 export const OVERALL_TOTALS = {
-  "concludedTotalTons": 1470279,
-  "concludedScTotalTons": 1232126,
+  "concludedTotalTons": 1491279,
+  "concludedScTotalTons": 1253126,
   "concludedSqTotalTons": 238153,
-  "concludedVessels": 42,
-  "concludedSalinorTons": 1260429,
+  "concludedVessels": 43,
+  "concludedSalinorTons": 1281429,
   "concludedSdbTons": 209850,
-  "concludedExpTons": 876446,
+  "concludedExpTons": 897446,
   "concludedCbtTons": 593833,
-  "totalTons": 1470279,
-  "scTotalTons": 1232126,
+  "totalTons": 1491279,
+  "scTotalTons": 1253126,
   "sqTotalTons": 238153,
-  "totalVessels": 42,
-  "salinorTotalTons": 1260429,
+  "totalVessels": 43,
+  "salinorTotalTons": 1281429,
   "sdbTotalTons": 209850,
-  "expTotalTons": 876446,
+  "expTotalTons": 897446,
   "cbtTotalTons": 593833,
-  "monthlyAverageTons": 147028,
-  "vesselAverageTons": 35007,
-  "operatingTotalTons": 21000,
+  "monthlyAverageTons": 149128,
+  "vesselAverageTons": 34681,
+  "operatingTotalTons": 38200,
   "operatingVessels": 1,
   "confirmedVessels": 0,
   "plannedTotalTons": 0,
   "plannedVessels": 0,
-  "totalProgrammedTons": 1491279
+  "totalProgrammedTons": 1529479
 };
 
 /**
