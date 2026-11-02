@@ -6,8 +6,14 @@ import {
   Locate,
   Loader2,
   AlertCircle,
+  Navigation,
+  Gauge,
+  Clock,
+  ArrowRight,
+  RotateCcw,
+  Wind,
 } from 'lucide-react';
-import { PortConfig, CustomUserLocation } from '../types/maritime';
+import { PortConfig, CustomUserLocation, WeatherData } from '../types/maritime';
 import { CurrentTideState } from '../utils/tideCalculations';
 import { decimalToDMS } from '../data/vesselTrafficData';
 
@@ -15,14 +21,20 @@ interface InteractiveNauticalMapProps {
   port: PortConfig;
   tideState: CurrentTideState;
   userLocation: CustomUserLocation;
+  weather?: WeatherData | null;
+  weatherLoading?: boolean;
   onSelectPort: (portId: 'areia_branca' | 'macau') => void;
   onUpdateUserLocation: (newLoc: CustomUserLocation) => void;
 }
+
+export type TerminalRouteId = 'areia_branca' | 'macau';
 
 export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
   port,
   tideState,
   userLocation,
+  weather,
+  weatherLoading = false,
   onSelectPort,
   onUpdateUserLocation,
 }) => {
@@ -33,6 +45,14 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [isRealGps, setIsRealGps] = useState<boolean>(false);
+
+  // Nautical Route Calculation & Speed Controller (knots)
+  const [activeRoute, setActiveRoute] = useState<TerminalRouteId>('areia_branca');
+  const [speedKnots, setSpeedKnots] = useState<number>(7.5); // standard barge / tug speed: ~7.5 knots
+  const [departureTime, setDepartureTime] = useState<string>(() => {
+    const now = new Date();
+    return now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  });
 
   // Request Real Device GPS Location
   const requestDeviceLocation = useCallback(() => {
@@ -208,25 +228,73 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
     const portoAreiaBrancaCoords: [number, number] = [-4.958694, -37.138250]; // 4°57'31.3"S 37°08'17.7"W
 
     const macauBarraCoords: [number, number] = [-5.0683, -36.6342];
+    // Macau offshore approach waypoint clear of shallows
+    const macauOffshoreWaypoint: [number, number] = [-4.980, -36.680];
+    const macauIntermediateWaypoint: [number, number] = [-4.890, -36.850];
 
-    // Helper for Div Icons with compact, sleek styling
-    const createPOI_Icon = (color: string, iconStr: string, label: string) => {
+    // Nautical Routes to TSI (Terminal Salineiro)
+    const areiaBrancaToTSIRoute: [number, number][] = [
+      pontaUpanemaCoords,
+      [-4.865, -37.085],
+      [-4.822, -37.043],
+      termisaOffshoreCoords,
+    ];
+
+    const macauToTSIRoute: [number, number][] = [
+      macauBarraCoords,
+      macauOffshoreWaypoint,
+      macauIntermediateWaypoint,
+      [-4.845, -37.015],
+      termisaOffshoreCoords,
+    ];
+
+    // Standard Nautical Channel / Route Lines
+    // Both routes rendered with standard nautical channel styling:
+    L.polyline(areiaBrancaToTSIRoute, {
+      color: activeRoute === 'areia_branca' ? '#00e5ff' : '#0284c7',
+      weight: activeRoute === 'areia_branca' ? 3.5 : 2.5,
+      dashArray: '6, 6',
+      opacity: activeRoute === 'areia_branca' ? 0.95 : 0.65,
+      lineCap: 'round',
+    }).addTo(map);
+
+    L.polyline(macauToTSIRoute, {
+      color: activeRoute === 'macau' ? '#00e5ff' : '#0284c7',
+      weight: activeRoute === 'macau' ? 3.5 : 2.5,
+      dashArray: '6, 6',
+      opacity: activeRoute === 'macau' ? 0.95 : 0.65,
+      lineCap: 'round',
+    }).addTo(map);
+
+    // Helper for Div Icons with standard and highlighted states (clean, without blinking animation)
+    const createPOI_Icon = (
+      color: string,
+      iconStr: string,
+      label: string,
+      isSelectedBarra: boolean = false
+    ) => {
+      const border = isSelectedBarra ? '2.5px solid #22d3ee' : '1.5px solid white';
+      const shadow = isSelectedBarra
+        ? '0 0 10px rgba(34, 211, 238, 0.8), 0 3px 10px rgba(0,0,0,0.6)'
+        : '0 2px 8px rgba(0,0,0,0.45)';
+      const scale = isSelectedBarra ? 'transform: scale(1.04);' : '';
+
       return L.divIcon({
         className: 'custom-leaflet-poi',
         html: `
-          <div style="background: ${color}; color: white; padding: 2.5px 6px; border-radius: 6px; font-weight: bold; font-size: 9.5px; font-family: monospace; border: 1.5px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.45); display: flex; align-items: center; gap: 3px; white-space: nowrap; line-height: 1.2;">
+          <div style="position: relative; background: ${color}; color: white; padding: 2.5px 7px; border-radius: 6px; font-weight: bold; font-size: 9.5px; font-family: monospace; border: ${border}; box-shadow: ${shadow}; display: flex; align-items: center; gap: 3.5px; white-space: nowrap; line-height: 1.2; ${scale}">
             <span style="font-size: 10px;">${iconStr}</span>
             <span>${label}</span>
           </div>
         `,
-        iconSize: [105, 22],
-        iconAnchor: [52, 11],
+        iconSize: [108, 22],
+        iconAnchor: [54, 11],
       });
     };
 
-    // Areia Branca Points (TSI - INTERSAL)
+    // Terminal (TSI - INTERSAL)
     L.marker(termisaOffshoreCoords, {
-      icon: createPOI_Icon('#0284c7', '🏝️', 'TSI - INTERSAL'),
+      icon: createPOI_Icon('#0284c7', '🏝️', 'TSI - INTERSAL', false),
     }).addTo(map).bindPopup(`
       <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
         <h4 style="margin: 0; font-weight: bold; color: #0284c7;">TSI - INTERSAL</h4>
@@ -235,17 +303,23 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
       </div>
     `);
 
-    L.marker(pontaUpanemaCoords, {
-      icon: createPOI_Icon('#eab308', '⚠️', 'Barra Areia Branca'),
+    // Barra Areia Branca (Highlighted ONLY when activeRoute === 'areia_branca')
+    const isABSelected = activeRoute === 'areia_branca';
+    const markerAB = L.marker(pontaUpanemaCoords, {
+      icon: createPOI_Icon(isABSelected ? '#ca8a04' : '#eab308', '⚠️', 'Barra Areia Branca', isABSelected),
+      zIndexOffset: isABSelected ? 500 : 100,
     }).addTo(map).bindPopup(`
       <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
         <h4 style="margin: 0; font-weight: bold; color: #ca8a04;">Barra Areia Branca</h4>
         <p style="margin: 4px 0 0 0; font-size: 12px;">Profundidade crítica no ZH: 2.2 metros (Ponta do Upanema)</p>
+        <p style="margin: 2px 0 0 0; font-size: 11px; color: #0284c7;">Distância até TSI: <strong>7.8 NM</strong></p>
       </div>
     `);
+    markerAB.on('click', () => setActiveRoute('areia_branca'));
 
+    // TPI - INTERSAL
     L.marker(portoAreiaBrancaCoords, {
-      icon: createPOI_Icon('#475569', '⚓', 'TPI - INTERSAL'),
+      icon: createPOI_Icon('#475569', '⚓', 'TPI - INTERSAL', false),
     }).addTo(map).bindPopup(`
       <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
         <h4 style="margin: 0; font-weight: bold; color: #334155;">TPI - INTERSAL</h4>
@@ -254,20 +328,26 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
       </div>
     `);
 
-    // Channel Polyline (Areia Branca)
-    const areiaBrancaChannel: [number, number][] = [
-      fozRioMossoroCoords,
-      pontaUpanemaCoords,
-      [-4.86, -37.08],
-      [-4.82236, -37.04381],
-      termisaOffshoreCoords,
-    ];
+    // Barra de Macau (Highlighted ONLY when activeRoute === 'macau')
+    const isMacauSelected = activeRoute === 'macau';
+    const markerMacau = L.marker(macauBarraCoords, {
+      icon: createPOI_Icon(isMacauSelected ? '#0891b2' : '#06b6d4', '🧭', 'Barra de Macau', isMacauSelected),
+      zIndexOffset: isMacauSelected ? 500 : 100,
+    }).addTo(map).bindPopup(`
+      <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
+        <h4 style="margin: 0; font-weight: bold; color: #0891b2;">Barra de Macau</h4>
+        <p style="margin: 4px 0 0 0; font-size: 12px;">Profundidade crítica no ZH: 1.8 metros</p>
+        <p style="margin: 2px 0 0 0; font-size: 11px; color: #0284c7;">Distância até TSI: <strong>28.5 NM</strong></p>
+      </div>
+    `);
+    markerMacau.on('click', () => setActiveRoute('macau'));
 
-    L.polyline(areiaBrancaChannel, {
-      color: '#06b6d4',
-      weight: 3,
-      dashArray: '6, 8',
-      opacity: 0.85,
+    // River channel from TPI to Barra Areia Branca
+    L.polyline([portoAreiaBrancaCoords, fozRioMossoroCoords, pontaUpanemaCoords], {
+      color: '#64748b',
+      weight: 2.5,
+      dashArray: '4, 6',
+      opacity: 0.7,
     }).addTo(map);
 
     // Critical Shallow Bank Polygon (Ponta do Upanema)
@@ -388,7 +468,7 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
         opacity: 0.4,
       }).addTo(map);
     }
-  }, [port, mapType, userLocation, showRangeRings, tideState.currentHeight]);
+  }, [port, mapType, userLocation, showRangeRings, tideState.currentHeight, activeRoute]);
 
   return (
     <div className="bg-slate-900/90 rounded-xl sm:rounded-2xl border border-slate-800 p-1.5 sm:p-2.5 shadow-xl text-slate-100 flex flex-col">
@@ -400,8 +480,221 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
         </div>
       )}
 
-      {/* Map Canvas - Maximized responsive viewport height */}
-      <div className="relative w-full h-[calc(100vh-140px)] min-h-[520px] rounded-lg sm:rounded-xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
+      {/* Interactive Navigation Route & Speed (Knots) Calculator - Placed at TOP above map */}
+      {(() => {
+        const routeDistanceNM = activeRoute === 'areia_branca' ? 7.8 : 28.5;
+        const safeSpeed = Math.max(0.5, speedKnots);
+        const travelHours = routeDistanceNM / safeSpeed;
+        const totalMinutes = Math.round(travelHours * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        const speedKmH = (speedKnots * 1.852).toFixed(1);
+
+        // Calculate Estimated Arrival Time (ETA) based on departureTime
+        let etaString = '--:--';
+        try {
+          const [depH, depM] = departureTime.split(':').map(Number);
+          if (!isNaN(depH) && !isNaN(depM)) {
+            const arrTotalMinutes = depH * 60 + depM + totalMinutes;
+            const arrH = Math.floor((arrTotalMinutes / 60) % 24);
+            const arrM = arrTotalMinutes % 60;
+            etaString = `${String(arrH).padStart(2, '0')}:${String(arrM).padStart(2, '0')}`;
+          }
+        } catch {
+          etaString = '--:--';
+        }
+
+        return (
+          <div className="mb-2 p-2 sm:p-2.5 bg-slate-950/90 rounded-xl border border-cyan-500/30 shadow-lg text-slate-200">
+            {/* Header: Route Selection Buttons on Left Side with User Prompt */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+              {/* Route Selector with clear prompt on the Left */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wide flex items-center gap-1">
+                  <Navigation className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  Selecione a Barra para calcular a rota:
+                </span>
+
+                <div className="flex items-center p-0.5 bg-slate-900 rounded-lg border border-slate-800 text-[11px] shadow-inner">
+                  <button
+                    onClick={() => {
+                      setActiveRoute('areia_branca');
+                      if (mapInstanceRef.current) {
+                        mapInstanceRef.current.setView([-4.87, -37.08], 11);
+                      }
+                    }}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition ${
+                      activeRoute === 'areia_branca'
+                        ? 'bg-cyan-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Barra Areia Branca (7.8 NM)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveRoute('macau');
+                      if (mapInstanceRef.current) {
+                        mapInstanceRef.current.setView([-4.95, -36.85], 10);
+                      }
+                    }}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition ${
+                      activeRoute === 'macau'
+                        ? 'bg-cyan-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Barra Macau (28.5 NM)
+                  </button>
+                </div>
+              </div>
+
+              {/* Destination indicator on the Right */}
+              <div className="flex items-center gap-1.5 text-[10.5px] font-mono text-cyan-300">
+                <span className="text-slate-400">Destino:</span>
+                <span className="font-bold text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                  TSI - INTERSAL
+                </span>
+              </div>
+            </div>
+
+            {/* Interactive Controls & Navigation Metrics */}
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+              {/* Speed Slider in Nautical Miles / Hour (Knots) + Live Wind Context */}
+              <div className="sm:col-span-7 bg-slate-900/80 p-2 sm:p-2.5 rounded-lg border border-slate-800">
+                {/* Wind At The Moment (Knots) & Heading Bar */}
+                <div className="mb-2 p-1.5 sm:p-2 bg-slate-950/90 rounded-md border border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Wind className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span className="text-[11px] font-bold text-slate-200">
+                      Vento no momento:
+                    </span>
+                    {weatherLoading ? (
+                      <span className="text-[10px] text-slate-400 flex items-center gap-1 font-mono">
+                        <Loader2 className="w-3 h-3 animate-spin text-cyan-400" /> Carregando...
+                      </span>
+                    ) : weather ? (
+                      <span className="font-mono text-[11px] font-bold text-cyan-300 flex items-center gap-1">
+                        <span className={weather.windSpeedKnots >= 30 ? 'text-red-400 font-bold bg-red-950/60 px-1 rounded border border-red-800' : 'text-cyan-300'}>
+                          {weather.windSpeedKnots} knots
+                        </span>
+                        <span className="text-slate-400 font-normal">({weather.windSpeedKmH} km/h)</span>
+                        <span className="text-emerald-400 font-semibold uppercase ml-0.5">{weather.windDirectionLabel}</span>
+                        {weather.windGustKnots > 0 && (
+                          <span className={`text-[10px] font-normal ${weather.windGustKnots >= 30 ? 'text-red-400 font-bold bg-red-950/60 px-1 py-0.5 rounded border border-red-800/80 animate-pulse' : 'text-amber-300'}`}>
+                            • Rajada {weather.windGustKnots} kn
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        12.5 knots ENE (Médio Alísios)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 text-xs mb-1">
+                  <span className="flex items-center gap-1.5 text-slate-300 font-medium text-[11px]">
+                    <Gauge className="w-3.5 h-3.5 text-cyan-400" />
+                    Velocidade da rota em Milhas Náuticas/hora:
+                  </span>
+                  <span className="font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800/80 text-[11px]">
+                    {speedKnots.toFixed(1)} NM/h
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] font-mono text-slate-400">2.0 NM/h</span>
+                  <input
+                    type="range"
+                    min="2"
+                    max="18"
+                    step="0.5"
+                    value={speedKnots}
+                    onChange={(e) => setSpeedKnots(parseFloat(e.target.value))}
+                    className="w-full accent-cyan-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                  />
+                  <span className="text-[10px] font-mono text-slate-400">18.0 NM/h</span>
+                </div>
+
+                {/* Quick Speed Presets in Nautical Miles / Knots */}
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <span className="text-[9.5px] text-slate-400">Padrão:</span>
+                  {[
+                    { label: '5.0 NM/h (Comboio/Balsa)', val: 5.0 },
+                    { label: '7.5 NM/h (Rebocador)', val: 7.5 },
+                    { label: '10.0 NM/h (Praticagem)', val: 10.0 },
+                    { label: '12.0 NM/h (Lancha)', val: 12.0 },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      onClick={() => setSpeedKnots(preset.val)}
+                      className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono transition border ${
+                        speedKnots === preset.val
+                          ? 'bg-cyan-600/30 border-cyan-400 text-cyan-200'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {preset.val} NM/h
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Departure Time Input & ETA Output */}
+              <div className="sm:col-span-5 grid grid-cols-2 sm:grid-cols-1 gap-1.5">
+                {/* Departure Time */}
+                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                  <span className="text-[9.5px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-cyan-400" /> Saída da Barra
+                  </span>
+                  <div className="mt-1 flex items-center gap-1">
+                    <input
+                      type="time"
+                      value={departureTime}
+                      onChange={(e) => setDepartureTime(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs font-mono font-bold text-white focus:outline-none focus:border-cyan-500"
+                    />
+                    <button
+                      onClick={() => {
+                        const now = new Date();
+                        setDepartureTime(now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+                      }}
+                      title="Definir hora atual"
+                      className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 shrink-0"
+                    >
+                      <RotateCcw className="w-3 h-3 text-cyan-400" />
+                    </button>
+                  </div>
+                  <span className="text-[9px] text-slate-500 mt-0.5 block">Horário local (BRT)</span>
+                </div>
+
+                {/* Calculated Time & ETA */}
+                <div className="bg-cyan-950/40 p-2 rounded-lg border border-cyan-500/40">
+                  <span className="text-[9.5px] uppercase font-bold text-cyan-300 flex items-center gap-1">
+                    <ArrowRight className="w-3 h-3 text-cyan-400" /> Chegada no TSI (ETA)
+                  </span>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-black text-cyan-200 font-mono">
+                      {etaString}
+                    </span>
+                    <span className="text-[10px] font-mono text-cyan-300/80">
+                      (+{hours > 0 ? `${hours}h ` : ''}{minutes}m)
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-cyan-400/70 font-mono mt-0.5 block truncate">
+                    Distância: {routeDistanceNM} NM ({ (routeDistanceNM * 1.852).toFixed(1) } km)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Map Canvas */}
+      <div className="relative w-full h-[calc(100vh-250px)] min-h-[460px] rounded-lg sm:rounded-xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* Live Depth Overlay Card in Top-Left (Compact & Sleek) */}
@@ -497,36 +790,6 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
             Minha Posição
           </button>
         </div>
-      </div>
-
-      {/* Map Legend */}
-      <div className="p-2.5 sm:p-3 bg-slate-950/70 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs text-slate-300">
-        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 border border-white inline-block shadow-sm" />
-            Sua Posição
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-sky-500 inline-block" />
-            TSI - INTERSAL
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-slate-500 inline-block" />
-            TPI - INTERSAL
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-            Barra Areia Branca
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />
-            Barra de Macau
-          </span>
-        </div>
-
-        <span className="text-slate-500 font-mono text-[10px]">
-          WGS84 • GPS em Tempo Real
-        </span>
       </div>
     </div>
   );

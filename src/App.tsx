@@ -309,6 +309,8 @@ export default function App() {
             port={activePort}
             tideState={currentTideState}
             userLocation={userLocation}
+            weather={weather}
+            weatherLoading={weatherLoading}
             onSelectPort={setSelectedPortId}
             onUpdateUserLocation={setUserLocation}
           />
