@@ -232,6 +232,9 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
     const macauOffshoreWaypoint: [number, number] = [-4.980, -36.680];
     const macauIntermediateWaypoint: [number, number] = [-4.890, -36.850];
 
+    // Área Externa TSI (Área de Fondeio / Espera Offshore) - 4°42'28.9"S 36°54'23.4"W
+    const areaExternaTSICoords: [number, number] = [-4.708028, -36.906500];
+
     // Nautical Routes to TSI (Terminal Salineiro)
     const areiaBrancaToTSIRoute: [number, number][] = [
       pontaUpanemaCoords,
@@ -266,6 +269,14 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
       lineCap: 'round',
     }).addTo(map);
 
+    // Connection line from TSI to Área Externa TSI (offshore anchorage approach)
+    L.polyline([termisaOffshoreCoords, areaExternaTSICoords], {
+      color: '#38bdf8',
+      weight: 2,
+      dashArray: '3, 6',
+      opacity: 0.6,
+    }).addTo(map);
+
     // Helper for Div Icons with standard and highlighted states (clean, without blinking animation)
     const createPOI_Icon = (
       color: string,
@@ -282,13 +293,13 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
       return L.divIcon({
         className: 'custom-leaflet-poi',
         html: `
-          <div style="position: relative; background: ${color}; color: white; padding: 2.5px 7px; border-radius: 6px; font-weight: bold; font-size: 9.5px; font-family: monospace; border: ${border}; box-shadow: ${shadow}; display: flex; align-items: center; gap: 3.5px; white-space: nowrap; line-height: 1.2; ${scale}">
-            <span style="font-size: 10px;">${iconStr}</span>
-            <span>${label}</span>
+          <div style="position: relative; width: fit-content; max-width: 140px; background: ${color}; color: white; padding: 2.5px 8px; border-radius: 6px; font-weight: bold; font-size: 9.5px; font-family: monospace; border: ${border}; box-shadow: ${shadow}; display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; line-height: 1.2; ${scale}">
+            <span style="font-size: 10px; flex-shrink: 0;">${iconStr}</span>
+            <span style="overflow: hidden; text-overflow: ellipsis;">${label}</span>
           </div>
         `,
-        iconSize: [108, 22],
-        iconAnchor: [54, 11],
+        iconSize: [130, 24],
+        iconAnchor: [65, 12],
       });
     };
 
@@ -302,6 +313,28 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
         <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Calado máximo: 15.0m (Berço de Navios)</p>
       </div>
     `);
+
+    // Nova Localização: Área Externa TSI
+    L.marker(areaExternaTSICoords, {
+      icon: createPOI_Icon('#10b981', '⚓', 'Área Externa TSI', false),
+    }).addTo(map).bindPopup(`
+      <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
+        <h4 style="margin: 0; font-weight: bold; color: #059669;">Área Externa TSI</h4>
+        <p style="margin: 4px 0 0 0; font-size: 12px;">Área de Espera / Fondeio Offshore de Navios</p>
+        <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-family: monospace;">4°42'28.9"S 36°54'23.4"W</p>
+        <p style="margin: 2px 0 0 0; font-size: 11px; color: #0284c7;">Distância até TSI: <strong>10.6 NM</strong></p>
+      </div>
+    `);
+
+    // Círculo indicativo de raio da Área de Fondeio Externa (1.5 NM)
+    L.circle(areaExternaTSICoords, {
+      radius: 1852 * 1.5,
+      color: '#10b981',
+      fillColor: '#10b981',
+      fillOpacity: 0.08,
+      weight: 1.5,
+      dashArray: '4 6',
+    }).addTo(map);
 
     // Barra Areia Branca (Highlighted ONLY when activeRoute === 'areia_branca')
     const isABSelected = activeRoute === 'areia_branca';
