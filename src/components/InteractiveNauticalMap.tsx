@@ -88,10 +88,31 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
     );
   }, [onUpdateUserLocation]);
 
-  // Request GPS automatically when opening map
+  // Request GPS in background when opening map without forcing override of the initial regional overview
   useEffect(() => {
-    if (!isRealGps && !userLocation.isManual) {
-      requestDeviceLocation();
+    if (!isRealGps && !userLocation.isManual && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = Number(position.coords.latitude.toFixed(6));
+          const lng = Number(position.coords.longitude.toFixed(6));
+          const dmsLat = decimalToDMS(lat, true);
+          const dmsLng = decimalToDMS(lng, false);
+          const accuracy = Math.round(position.coords.accuracy || 0);
+
+          onUpdateUserLocation({
+            lat,
+            lng,
+            name: `Localização Real do Dispositivo (±${accuracy}m)`,
+            dmsLat,
+            dmsLng,
+            isManual: false,
+            estimatedBaseZHDepth: 4.0,
+          });
+          setIsRealGps(true);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+      );
     }
   }, []);
 
@@ -100,13 +121,22 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
+      // Regional center capturing both Areia Branca (TERMISA / Barra) and Macau
+      const regionalCenter: [number, number] = [-4.95, -36.90];
+      const regionalZoom = 10;
+
       const map = L.map(mapContainerRef.current, {
-        center: [userLocation.lat, userLocation.lng],
-        zoom: 13,
+        center: regionalCenter,
+        zoom: regionalZoom,
         zoomControl: false,
       });
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      // Ensure proper rendering of tiles when map tab is opened
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
 
       // Handle map clicks to set manual location
       map.on('click', (e: L.LeafletMouseEvent) => {
@@ -175,48 +205,54 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
     const termisaOffshoreCoords: [number, number] = [-4.825, -37.040];
     const pontaUpanemaCoords: [number, number] = [-4.912, -37.135];
     const fozRioMossoroCoords: [number, number] = [-4.955, -37.142];
-    const portoAreiaBrancaCoords: [number, number] = [-4.958, -37.133];
+    const portoAreiaBrancaCoords: [number, number] = [-4.958694, -37.138250]; // 4°57'31.3"S 37°08'17.7"W
 
     const macauBarraCoords: [number, number] = [-5.0683, -36.6342];
 
-    // Helper for Div Icons
+    // Helper for Div Icons with compact, sleek styling
     const createPOI_Icon = (color: string, iconStr: string, label: string) => {
       return L.divIcon({
         className: 'custom-leaflet-poi',
         html: `
-          <div style="background: ${color}; color: white; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 11px; font-family: monospace; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 4px; white-space: nowrap;">
-            <span>${iconStr}</span>
+          <div style="background: ${color}; color: white; padding: 2.5px 6px; border-radius: 6px; font-weight: bold; font-size: 9.5px; font-family: monospace; border: 1.5px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.45); display: flex; align-items: center; gap: 3px; white-space: nowrap; line-height: 1.2;">
+            <span style="font-size: 10px;">${iconStr}</span>
             <span>${label}</span>
           </div>
         `,
-        iconSize: [130, 30],
-        iconAnchor: [65, 15],
+        iconSize: [105, 22],
+        iconAnchor: [52, 11],
       });
     };
 
-    // Areia Branca Points
+    // Areia Branca Points (TSI - INTERSAL)
     L.marker(termisaOffshoreCoords, {
-      icon: createPOI_Icon('#0284c7', '🏝️', 'TERMISA (Ilha Salineira)'),
+      icon: createPOI_Icon('#0284c7', '🏝️', 'TSI - INTERSAL'),
     }).addTo(map).bindPopup(`
       <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
-        <h4 style="margin: 0; font-weight: bold; color: #0284c7;">TERMISA - Terminal Salineiro</h4>
-        <p style="margin: 4px 0 0 0; font-size: 12px;">Ilha artificial a 14km da costa</p>
+        <h4 style="margin: 0; font-weight: bold; color: #0284c7;">TSI - INTERSAL</h4>
+        <p style="margin: 4px 0 0 0; font-size: 12px;">Terminal Salineiro de Areia Branca (Ilha Artificial)</p>
         <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Calado máximo: 15.0m (Berço de Navios)</p>
       </div>
     `);
 
     L.marker(pontaUpanemaCoords, {
-      icon: createPOI_Icon('#eab308', '⚠️', 'Barra da Ponta do Upanema'),
+      icon: createPOI_Icon('#eab308', '⚠️', 'Barra Areia Branca'),
     }).addTo(map).bindPopup(`
       <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
-        <h4 style="margin: 0; font-weight: bold; color: #ca8a04;">Barra da Ponta do Upanema</h4>
-        <p style="margin: 4px 0 0 0; font-size: 12px;">Profundidade crítica no ZH: 2.2 metros</p>
+        <h4 style="margin: 0; font-weight: bold; color: #ca8a04;">Barra Areia Branca</h4>
+        <p style="margin: 4px 0 0 0; font-size: 12px;">Profundidade crítica no ZH: 2.2 metros (Ponta do Upanema)</p>
       </div>
     `);
 
     L.marker(portoAreiaBrancaCoords, {
-      icon: createPOI_Icon('#475569', '⚓', 'Porto de Areia Branca'),
-    }).addTo(map);
+      icon: createPOI_Icon('#475569', '⚓', 'TPI - INTERSAL'),
+    }).addTo(map).bindPopup(`
+      <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
+        <h4 style="margin: 0; font-weight: bold; color: #334155;">TPI - INTERSAL</h4>
+        <p style="margin: 4px 0 0 0; font-size: 12px;">Terminal Portuário Interno (Areia Branca)</p>
+        <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-family: monospace;">4°57'31.3"S 37°08'17.7"W</p>
+      </div>
+    `);
 
     // Channel Polyline (Areia Branca)
     const areiaBrancaChannel: [number, number][] = [
@@ -257,7 +293,7 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
 
     // Macau Marker
     L.marker(macauBarraCoords, {
-      icon: createPOI_Icon('#06b6d4', '🧭', 'Barra de Macau (Rio Açu)'),
+      icon: createPOI_Icon('#06b6d4', '🧭', 'Barra de Macau'),
     }).addTo(map).bindPopup(`
       <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
         <h4 style="margin: 0; font-weight: bold; color: #0891b2;">Barra de Macau</h4>
@@ -418,18 +454,18 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
       <div className="relative w-full h-[460px] sm:h-[520px] rounded-xl sm:rounded-2xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-        {/* Live Depth Overlay Card in Top-Left */}
-        <div className="absolute top-3 left-3 z-10 bg-slate-950/90 border border-slate-700/80 p-2.5 sm:p-3 rounded-xl shadow-2xl backdrop-blur text-xs font-mono text-slate-200 pointer-events-auto">
-          <span className="text-[10px] uppercase text-cyan-400 font-bold block">
-            {isRealGps ? 'Localização Real do Dispositivo' : 'Posição no Mapa'}
+        {/* Live Depth Overlay Card in Top-Left (Compact & Sleek) */}
+        <div className="absolute top-2.5 left-2.5 z-10 bg-slate-950/90 border border-slate-700/80 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl shadow-xl backdrop-blur text-xs font-mono text-slate-200 pointer-events-auto">
+          <span className="text-[9px] uppercase text-cyan-400 font-bold block leading-tight">
+            {isRealGps ? 'Localização Real' : 'Posição no Mapa'}
           </span>
-          <div className="mt-0.5 flex items-baseline gap-2">
-            <span className="text-lg sm:text-xl font-bold text-white">
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <span className="text-base sm:text-lg font-black text-white leading-none">
               {(userLocation.estimatedBaseZHDepth + tideState.currentHeight).toFixed(2)} m
             </span>
-            <span className="text-[10px] sm:text-[11px] text-slate-400">lâmina total</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400">lâmina total</span>
           </div>
-          <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
+          <div className="text-[9px] text-slate-400 mt-0.5 font-mono leading-tight">
             {userLocation.dmsLat} {userLocation.dmsLng}
           </div>
         </div>
@@ -451,6 +487,17 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
         <div className="absolute bottom-3 left-3 right-3 sm:right-auto z-10 flex gap-1.5 flex-wrap">
           <button
             onClick={() => {
+              if (mapInstanceRef.current) {
+                mapInstanceRef.current.setView([-4.95, -36.90], 10);
+              }
+            }}
+            className="px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold shadow-lg backdrop-blur transition border bg-slate-900/90 text-cyan-300 border-cyan-500/50 hover:bg-slate-800"
+            title="Visão ampla pegando Barra de Areia Branca, TERMISA e Macau"
+          >
+            Visão Geral (RN)
+          </button>
+          <button
+            onClick={() => {
               onSelectPort('areia_branca');
               if (mapInstanceRef.current) {
                 mapInstanceRef.current.setView([-4.825, -37.040], 12);
@@ -462,7 +509,7 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
                 : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:bg-slate-800'
             }`}
           >
-            Focar TERMISA
+            Focar TSI
           </button>
           <button
             onClick={() => {
@@ -504,11 +551,15 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-sky-500 inline-block" />
-            TERMISA (Ilha)
+            TSI - INTERSAL
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-slate-500 inline-block" />
+            TPI - INTERSAL
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-            Ponta do Upanema
+            Barra Areia Branca
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />

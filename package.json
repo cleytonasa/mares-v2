@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && mkdir -p assets production/assets && cp -rf dist/assets/* assets/ && cp -rf dist/* production/ && cp dist/assets/* production/assets/ && cp dist/.htaccess production/.htaccess && cp public/logo.svg assets/logo.svg && cp public/logo.svg production/logo.svg && tar -czvf dist.tar.gz -C dist .",
+    "build": "vite build && mkdir -p assets production/assets && cp -rf dist/assets/* assets/ && cp -rf dist/* production/ && cp -rf dist/assets/* production/assets/ && cp dist/.htaccess production/.htaccess && cp public/logo.svg assets/logo.svg && cp public/logo.svg production/logo.svg && tar -czvf dist.tar.gz -C dist .",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit --skipLibCheck",
