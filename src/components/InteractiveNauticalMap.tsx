@@ -391,67 +391,17 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
   }, [port, mapType, userLocation, showRangeRings, tideState.currentHeight]);
 
   return (
-    <div className="bg-slate-900/90 rounded-xl sm:rounded-2xl border border-slate-800 p-2.5 sm:p-5 shadow-xl text-slate-100 space-y-3">
-      {/* Top Action Bar */}
-      <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-800">
-        {/* GPS Status / Current Coords */}
-        <div className="flex items-center gap-2 min-w-0">
-          <button
-            onClick={requestDeviceLocation}
-            disabled={isLocating}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border ${
-              isRealGps
-                ? 'bg-emerald-950/80 border-emerald-500/80 text-emerald-300 shadow-sm shadow-emerald-950'
-                : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
-            }`}
-            title="Obter localização real via GPS do celular/dispositivo"
-          >
-            {isLocating ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
-            ) : (
-              <Locate className={`w-3.5 h-3.5 ${isRealGps ? 'text-emerald-400' : 'text-cyan-400'}`} />
-            )}
-            <span>{isLocating ? 'Buscando GPS...' : isRealGps ? 'GPS em Tempo Real' : 'Ativar GPS Real'}</span>
-          </button>
-
-          <span className="text-xs font-mono text-slate-300 truncate hidden xs:inline">
-            {userLocation.dmsLat} {userLocation.dmsLng}
-          </span>
-        </div>
-
-        {/* Map Controls */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center p-0.5 sm:p-1 bg-slate-950 rounded-lg border border-slate-800 text-[11px] sm:text-xs">
-            <button
-              onClick={() => setMapType('satellite')}
-              className={`px-2 py-1 rounded-md font-medium transition ${
-                mapType === 'satellite' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Satélite
-            </button>
-            <button
-              onClick={() => setMapType('nautical')}
-              className={`px-2 py-1 rounded-md font-medium transition ${
-                mapType === 'nautical' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Carta Náutica
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className="bg-slate-900/90 rounded-xl sm:rounded-2xl border border-slate-800 p-1.5 sm:p-2.5 shadow-xl text-slate-100 flex flex-col">
       {/* GPS Error alert if any */}
       {gpsError && (
-        <div className="p-2 bg-amber-950/60 border border-amber-500/50 rounded-lg flex items-center gap-2 text-xs text-amber-200">
+        <div className="mb-2 p-2 bg-amber-950/60 border border-amber-500/50 rounded-lg flex items-center gap-2 text-xs text-amber-200">
           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
           <span>{gpsError}</span>
         </div>
       )}
 
-      {/* Map Canvas */}
-      <div className="relative w-full h-[460px] sm:h-[520px] rounded-xl sm:rounded-2xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
+      {/* Map Canvas - Maximized responsive viewport height */}
+      <div className="relative w-full h-[calc(100vh-140px)] min-h-[520px] rounded-lg sm:rounded-xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* Live Depth Overlay Card in Top-Left (Compact & Sleek) */}
@@ -470,17 +420,24 @@ export const InteractiveNauticalMap: React.FC<InteractiveNauticalMapProps> = ({
           </div>
         </div>
 
-        {/* Map Rings Toggle Overlay in Top-Right */}
-        <div className="absolute top-3 right-3 z-10 flex flex-col gap-1 bg-slate-950/90 border border-slate-700 p-1.5 sm:p-2 rounded-xl text-xs font-mono backdrop-blur">
-          <label className="flex items-center gap-1.5 cursor-pointer text-[10px] sm:text-[11px] text-slate-300 hover:text-white">
-            <input
-              type="checkbox"
-              checked={showRangeRings}
-              onChange={(e) => setShowRangeRings(e.target.checked)}
-              className="accent-cyan-500 rounded"
-            />
-            <span>Anéis (1, 3, 5 NM)</span>
-          </label>
+        {/* Floating Layer Controls in Top-Right */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center p-0.5 bg-slate-950/90 backdrop-blur rounded-lg border border-slate-700/80 text-[11px] shadow-lg">
+          <button
+            onClick={() => setMapType('satellite')}
+            className={`px-2 py-1 rounded-md font-medium transition ${
+              mapType === 'satellite' ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Satélite
+          </button>
+          <button
+            onClick={() => setMapType('nautical')}
+            className={`px-2 py-1 rounded-md font-medium transition ${
+              mapType === 'nautical' ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Carta Náutica
+          </button>
         </div>
 
         {/* Quick Port Focus Buttons in Bottom-Left */}

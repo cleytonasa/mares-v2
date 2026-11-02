@@ -80,27 +80,28 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Navigation & Port Selector Bar */}
-        <div className="py-1.5 sm:py-2 flex flex-col md:flex-row md:items-center justify-between gap-1.5 sm:gap-2.5">
-          {/* Grouped Controls Container (Scrollable on small screens) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none w-full justify-between md:justify-start">
-            {/* Port Toggle (Compact on mobile) */}
-            <div className="flex items-center gap-1 p-0.5 sm:p-1 bg-slate-950/80 rounded-lg sm:rounded-xl border border-slate-800 shrink-0">
+        <div className="py-1 sm:py-2 flex flex-col md:flex-row md:items-center justify-between gap-1 sm:gap-2.5">
+          {/* Grouped Controls Container (Smooth horizontal scroll on extra narrow screens) */}
+          <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-none w-full justify-between md:justify-start -mx-1 px-1">
+            {/* Port Toggle (Ultra compact on mobile) */}
+            <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-slate-950/80 rounded-lg sm:rounded-xl border border-slate-800 shrink-0">
               <button
                 id="port-select-areia-branca"
                 onClick={() => onSelectPort('areia_branca')}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-semibold transition flex items-center gap-1 sm:gap-1.5 ${
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-semibold transition flex items-center gap-1 sm:gap-1.5 ${
                   activePort.id === 'areia_branca'
                     ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Anchor className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                <span>Areia Branca</span>
+                <span className="hidden xs:inline">Areia Branca</span>
+                <span className="xs:hidden">A. Branca</span>
               </button>
               <button
                 id="port-select-macau"
                 onClick={() => onSelectPort('macau')}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-semibold transition flex items-center gap-1 sm:gap-1.5 ${
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-semibold transition flex items-center gap-1 sm:gap-1.5 ${
                   activePort.id === 'macau'
                     ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -115,12 +116,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="hidden md:block w-px h-5 bg-slate-800" />
 
             {/* Tab Navigation (Responsive pills with icons and short labels on mobile) */}
-            <nav className="flex items-center gap-1 shrink-0 ml-auto md:ml-0 overflow-x-auto scrollbar-none">
+            <nav className="flex items-center gap-0.5 sm:gap-1 shrink-0 ml-auto md:ml-0 overflow-x-auto scrollbar-none">
               <button
                 id="nav-tab-dashboard"
                 onClick={() => onChangeTab('dashboard')}
                 title="Painel em Tempo Real"
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'dashboard'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
@@ -134,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 id="nav-tab-shipments"
                 onClick={() => onChangeTab('shipments')}
                 title="Line-Up de Navios INTERSAL"
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'shipments'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
@@ -148,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 id="nav-tab-map"
                 onClick={() => onChangeTab('map')}
                 title="Mapa Náutico Georreferenciado"
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'map'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
@@ -163,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 id="nav-tab-table"
                 onClick={() => onChangeTab('table')}
                 title="Tábua de Marés DHN"
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
                   activeTab === 'table'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
