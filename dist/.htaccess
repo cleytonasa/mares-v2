@@ -1,0 +1,76 @@
+# 1. Permissões de Acesso e Índices
+Options -Indexes +FollowSymLinks
+DirectoryIndex index.html
+
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>
+
+# 2. Tipos MIME Corretos
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+  AddType text/javascript .js
+  AddType text/css .css
+  AddType application/json .json
+  AddType application/manifest+json .webmanifest
+  AddType image/svg+xml .svg .svgz
+  AddType image/x-icon .ico
+  AddType image/png .png
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+  AddType application/pdf .pdf
+</IfModule>
+
+# 3. Regras de Roteamento SPA e Subpastas
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # A. Redirecionamento de assets mesmo se chamado via subcaminho (/mares/assets/ -> assets/)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule (^|.*/)assets/(.*)$ assets/$2 [L]
+
+  # B. Arquivos estáticos essenciais chamados via subcaminho (/mares/manifest.webmanifest -> manifest.webmanifest)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule (^|.*/)(favicon\.ico|logo\.svg|manifest\.webmanifest|manifest\.json|sw\.js|apple-touch-icon\.png|icon-192\.png|icon-512\.png|og-image\.png|favicon-32x32\.png|favicon\.png|programacao-navios\.pdf)$ $2 [L]
+
+  # C. Não reescrever requisições para arquivos ou pastas físicas existentes
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # D. Se for um asset com extensão que não existe, retorne 404 em vez de index.html
+  RewriteCond %{REQUEST_URI} \.(js|mjs|css|png|jpg|jpeg|gif|svg|ico|webmanifest|json|woff|woff2)$ [NC]
+  RewriteRule ^ - [R=404,L]
+
+  # E. Fallback de SPA para raiz, /mares e qualquer rota
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# 4. Compressão GZIP / Deflate
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# 5. Controle de Cache e Headers
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm|json|webmanifest)$">
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  <FilesMatch "\.(js|mjs)$">
+    Header set Content-Type "application/javascript; charset=utf-8"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType application/manifest+json "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>

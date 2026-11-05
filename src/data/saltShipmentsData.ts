@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Outubro de 2026
-// Atualizado em: 28/10/2026 18:31
+// Atualizado em: 05/11/2026 11:02
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -919,7 +919,7 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 39182,
     "eta": "26/10/2026 07:50",
     "etb": "28/10/2026 15:48",
-    "etd": "31/10/2026 15:00",
+    "etd": "09/11/2026 12:00",
     "status": "Em operação",
     "scVolumeTons": 5000,
     "sqVolumeTons": 33200,
@@ -927,8 +927,108 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "trafficType": "CBT",
     "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
-    "month": 10,
-    "monthName": "Outubro",
+    "month": 11,
+    "monthName": "Novembro",
+    "year": 2026
+  },
+  {
+    "id": "sln2026039",
+    "visitCode": "SLN2026039",
+    "vesselName": "BULK MUSTIQUE",
+    "loaMeters": 0,
+    "dwt": 0,
+    "eta": "11/11/2026 00:00",
+    "etb": "11/11/2026 07:00",
+    "etd": "15/11/2026 12:00",
+    "status": "Previsto",
+    "scVolumeTons": 47500,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 47500,
+    "trafficType": "CBT",
+    "trafficLabel": "Cabotagem",
+    "shipper": "SALINOR",
+    "month": 11,
+    "monthName": "Novembro",
+    "year": 2026
+  },
+  {
+    "id": "sln2026040",
+    "visitCode": "SLN2026040",
+    "vesselName": "MARCOS DIAS",
+    "loaMeters": 0,
+    "dwt": 0,
+    "eta": "15/11/2026 00:00",
+    "etb": "15/11/2026 14:00",
+    "etd": "19/11/2026 12:00",
+    "status": "Previsto",
+    "scVolumeTons": 43000,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 43000,
+    "trafficType": "CBT",
+    "trafficLabel": "Cabotagem",
+    "shipper": "SALINOR",
+    "month": 11,
+    "monthName": "Novembro",
+    "year": 2026
+  },
+  {
+    "id": "sln2026041",
+    "visitCode": "SLN2026041",
+    "vesselName": "TBN",
+    "loaMeters": 0,
+    "dwt": 0,
+    "eta": "21/11/2026 00:00",
+    "etb": "21/11/2026 07:00",
+    "etd": "23/11/2026 12:00",
+    "status": "Previsto",
+    "scVolumeTons": 25000,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 25000,
+    "trafficType": "CBT",
+    "trafficLabel": "Cabotagem",
+    "shipper": "SALINOR",
+    "month": 11,
+    "monthName": "Novembro",
+    "year": 2026
+  },
+  {
+    "id": "sdb2026007",
+    "visitCode": "SDB2026007",
+    "vesselName": "TBN",
+    "loaMeters": 0,
+    "dwt": 0,
+    "eta": "24/11/2026 00:00",
+    "etb": "24/11/2026 07:00",
+    "etd": "26/11/2026 12:00",
+    "status": "Previsto",
+    "scVolumeTons": 21000,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 21000,
+    "trafficType": "CBT",
+    "trafficLabel": "Cabotagem",
+    "shipper": "SDB",
+    "month": 11,
+    "monthName": "Novembro",
+    "year": 2026
+  },
+  {
+    "id": "sln2026042",
+    "visitCode": "SLN2026042",
+    "vesselName": "TBN",
+    "loaMeters": 0,
+    "dwt": 0,
+    "eta": "27/11/2026 00:00",
+    "etb": "27/11/2026 07:00",
+    "etd": "30/11/2026 12:00",
+    "status": "Previsto",
+    "scVolumeTons": 45000,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 45000,
+    "trafficType": "CBT",
+    "trafficLabel": "Cabotagem",
+    "shipper": "SALINOR",
+    "month": 11,
+    "monthName": "Novembro",
     "year": 2026
   }
 ];
@@ -1164,29 +1264,54 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "monthName": "Outubro",
     "shortMonth": "Out",
     "year": 2026,
-    "vesselCount": 7,
+    "vesselCount": 6,
     "concludedCount": 6,
-    "operatingCount": 1,
+    "operatingCount": 0,
     "confirmedCount": 0,
     "plannedCount": 0,
     "concludedTotalVolume": 166960,
     "concludedScTotal": 166960,
     "concludedSqTotal": 0,
-    "scTotal": 171960,
-    "sqTotal": 33200,
-    "totalVolume": 205160,
-    "salinorVolume": 177060,
+    "scTotal": 166960,
+    "sqTotal": 0,
+    "totalVolume": 166960,
+    "salinorVolume": 138860,
     "sdbVolume": 28100,
     "salinorConcludedVolume": 138860,
     "sdbConcludedVolume": 28100,
     "expVolume": 133960,
-    "cbtVolume": 71200,
+    "cbtVolume": 33000,
     "expConcludedVolume": 133960,
     "cbtConcludedVolume": 33000
+  },
+  {
+    "month": 11,
+    "monthName": "Novembro",
+    "shortMonth": "Nov",
+    "year": 2026,
+    "vesselCount": 6,
+    "concludedCount": 0,
+    "operatingCount": 1,
+    "confirmedCount": 0,
+    "plannedCount": 5,
+    "concludedTotalVolume": 0,
+    "concludedScTotal": 0,
+    "concludedSqTotal": 0,
+    "scTotal": 186500,
+    "sqTotal": 33200,
+    "totalVolume": 219700,
+    "salinorVolume": 198700,
+    "sdbVolume": 21000,
+    "salinorConcludedVolume": 0,
+    "sdbConcludedVolume": 0,
+    "expVolume": 0,
+    "cbtVolume": 219700,
+    "expConcludedVolume": 0,
+    "cbtConcludedVolume": 0
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '28/10/2026 18:31';
+export const LINEUP_LAST_UPDATED = '05/11/2026 11:02';
 
 export const OVERALL_TOTALS = {
   "concludedTotalTons": 1491279,
@@ -1210,9 +1335,9 @@ export const OVERALL_TOTALS = {
   "operatingTotalTons": 38200,
   "operatingVessels": 1,
   "confirmedVessels": 0,
-  "plannedTotalTons": 0,
-  "plannedVessels": 0,
-  "totalProgrammedTons": 1529479
+  "plannedTotalTons": 181500,
+  "plannedVessels": 5,
+  "totalProgrammedTons": 1710979
 };
 
 /**
