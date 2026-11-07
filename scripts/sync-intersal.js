@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
+import crypto from 'crypto';
 import { PDFParse } from 'pdf-parse';
 
 const INTERSAL_PDF_URL = 'https://intersal.com.br/assets/arquivos/programacao-navios.pdf';
@@ -40,6 +41,13 @@ const SHORT_MONTHS = {
 };
 
 /**
+ * Compute SHA-256 hash of a buffer
+ */
+function computeBufferHash(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+/**
  * Fetch HTTP headers following redirects with insecure SSL allowed
  */
 function fetchHeaders(targetUrl) {
@@ -52,7 +60,8 @@ function fetchHeaders(targetUrl) {
         method: 'HEAD',
         rejectUnauthorized: false,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) IntersalMonitor/1.0'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) IntersalMonitor/1.0',
+          'Accept': '*/*'
         }
       },
       (res) => {
@@ -68,10 +77,10 @@ function fetchHeaders(targetUrl) {
         });
       }
     );
-    req.on('error', reject);
+    req.on('error', (err) => resolve({ statusCode: 0, headers: {}, error: err.message }));
     req.setTimeout(15000, () => {
       req.destroy();
-      reject(new Error('Timeout fetching headers'));
+      resolve({ statusCode: 408, headers: {}, error: 'Timeout fetching headers' });
     });
     req.end();
   });
@@ -90,7 +99,8 @@ function downloadFile(targetUrl) {
         method: 'GET',
         rejectUnauthorized: false,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) IntersalMonitor/1.0'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) IntersalMonitor/1.0',
+          'Accept': 'application/pdf,*/*'
         }
       },
       (res) => {
@@ -100,7 +110,7 @@ function downloadFile(targetUrl) {
           return;
         }
         if (res.statusCode !== 200) {
-          reject(new Error(`Failed to download: status ${res.statusCode}`));
+          reject(new Error(`Falha ao baixar PDF Intersal: status HTTP ${res.statusCode}`));
           return;
         }
         const chunks = [];
@@ -111,7 +121,7 @@ function downloadFile(targetUrl) {
     req.on('error', reject);
     req.setTimeout(30000, () => {
       req.destroy();
-      reject(new Error('Timeout downloading file'));
+      reject(new Error('Timeout ao baixar PDF Intersal'));
     });
     req.end();
   });
@@ -470,8 +480,12 @@ async function parseIntersalPdf(pdfBuffer) {
  * Format TypeScript output code
  */
 function generateTypeScriptCode({ lineupLastUpdated, records, monthlySummaries, overallTotals }) {
+  const firstMonth = records.length > 0 ? records[0].month : 1;
+  const lastMonth = records.length > 0 ? records[records.length - 1].month : 11;
+  const periodStr = `${MONTH_NAMES[firstMonth] || 'Janeiro'} a ${MONTH_NAMES[lastMonth] || 'Dezembro'} de 2026`;
+
   return `// Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
-// Período: Janeiro a Outubro de 2026
+// Período: ${periodStr}
 // Atualizado em: ${lineupLastUpdated}
 // Gerado automaticamente via sincronizador Intersal
 
@@ -567,27 +581,25 @@ export function getActiveAndNextVessel(vessels: SaltVesselRecord[] = SALT_SHIPME
 `;
 }
 
-
 /**
  * Main execution
  */
 async function main() {
   const force = process.argv.includes('--force');
-  console.log(`[Intersal Sync] Verificando cabeçalhos em ${INTERSAL_PDF_URL}...`);
+  console.log(`[Intersal Sync] Verificando cabeçalhos e disponibilidade em ${INTERSAL_PDF_URL}...`);
 
-  let headerInfo;
+  let headerInfo = null;
   try {
     headerInfo = await fetchHeaders(INTERSAL_PDF_URL);
   } catch (err) {
-    console.error(`[Intersal Sync] Erro ao consultar cabeçalhos:`, err.message);
-    if (!force) process.exit(1);
+    console.warn(`[Intersal Sync] Aviso ao consultar cabeçalhos (${err.message}). Prosseguindo com download...`);
   }
 
-  const lastModified = headerInfo?.headers['last-modified'] || '';
-  const etag = headerInfo?.headers['etag'] || '';
-  const contentLength = headerInfo?.headers['content-length'] || '';
+  const lastModified = headerInfo?.headers?.['last-modified'] || '';
+  const etag = headerInfo?.headers?.['etag'] || '';
+  const contentLength = headerInfo?.headers?.['content-length'] || '';
 
-  console.log(`[Intersal Sync] Metadados do servidor:`, { lastModified, etag, contentLength });
+  console.log(`[Intersal Sync] Metadados HTTP do servidor:`, { lastModified, etag, contentLength });
 
   let lastSync = null;
   if (fs.existsSync(LAST_SYNC_FILE)) {
@@ -598,18 +610,22 @@ async function main() {
     }
   }
 
-  const isChanged = !lastSync || lastSync.etag !== etag || lastSync.lastModified !== lastModified;
+  // Baixa o PDF para garantir validação de integridade por hash SHA-256
+  console.log(`[Intersal Sync] Baixando arquivo PDF mais recente...`);
+  const pdfBuffer = await downloadFile(INTERSAL_PDF_URL);
+  const pdfHash = computeBufferHash(pdfBuffer);
+  console.log(`[Intersal Sync] PDF baixado com sucesso (${pdfBuffer.length} bytes, SHA-256: ${pdfHash.slice(0, 12)}...).`);
 
-  if (!isChanged && !force) {
-    console.log(`[Intersal Sync] Nenhuma alteração detectada no portal Intersal. O line-up local já está atualizado.`);
+  const hashMatches = lastSync && lastSync.pdfHash === pdfHash;
+  const headersMatch = lastSync && etag && lastSync.etag === etag && lastModified && lastSync.lastModified === lastModified;
+
+  if (hashMatches && !force) {
+    console.log(`[Intersal Sync] Nenhuma alteração detectada no conteúdo do PDF oficial Intersal.`);
+    console.log(`[Intersal Sync] O Line-Up local (${lastSync.lineupLastUpdated}) já está 100% atualizado.`);
     process.exit(0);
   }
 
-  console.log(`[Intersal Sync] Nova versão detectada ou execução forçada. Baixando PDF...`);
-  const pdfBuffer = await downloadFile(INTERSAL_PDF_URL);
-  console.log(`[Intersal Sync] PDF baixado com sucesso (${pdfBuffer.length} bytes).`);
-
-  // Save public copy
+  // Salva cópia pública para download pelos usuários na interface
   try {
     fs.mkdirSync(path.dirname(PUBLIC_PDF_FILE), { recursive: true });
     fs.writeFileSync(PUBLIC_PDF_FILE, pdfBuffer);
@@ -618,25 +634,26 @@ async function main() {
     console.warn(`[Intersal Sync] Aviso ao salvar cópia pública:`, err.message);
   }
 
-  console.log(`[Intersal Sync] Extraindo e processando dados do PDF...`);
+  console.log(`[Intersal Sync] Extraindo e processando dados do novo PDF...`);
   const parsedData = await parseIntersalPdf(pdfBuffer);
 
-  console.log(`[Intersal Sync] Extração concluída:`, {
+  console.log(`[Intersal Sync] Extração concluída com sucesso:`, {
     atualizadoEm: parsedData.lineupLastUpdated,
     totalNavios: parsedData.records.length,
-    volumeTotal: parsedData.overallTotals.totalProgrammedTons
+    volumeTotalProgramado: parsedData.overallTotals.totalProgrammedTons
   });
 
   const tsCode = generateTypeScriptCode(parsedData);
   fs.writeFileSync(TARGET_TS_FILE, tsCode, 'utf-8');
   console.log(`[Intersal Sync] Arquivo atualizado: ${TARGET_TS_FILE}`);
 
-  // Save sync state
+  // Salva estado de sincronização com metadados e hash SHA-256
   const syncState = {
     lastSyncTime: new Date().toISOString(),
-    lastModified,
-    etag,
-    contentLength,
+    pdfHash,
+    lastModified: lastModified || lastSync?.lastModified || '',
+    etag: etag || lastSync?.etag || '',
+    contentLength: contentLength || String(pdfBuffer.length),
     lineupLastUpdated: parsedData.lineupLastUpdated,
     totalVessels: parsedData.records.length,
     totalProgrammedTons: parsedData.overallTotals.totalProgrammedTons

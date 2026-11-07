@@ -210,6 +210,9 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
   };
 
   const maxMonthlyVolume = Math.max(...MONTHLY_SALT_SUMMARIES.map((m) => m.concludedTotalVolume || 1));
+  const startMonthName = MONTHLY_SALT_SUMMARIES[0]?.shortMonth || 'Jan';
+  const endMonthName = MONTHLY_SALT_SUMMARIES[MONTHLY_SALT_SUMMARIES.length - 1]?.shortMonth || 'Nov';
+  const periodLabel = `${startMonthName} a ${endMonthName} / 2026`;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -228,7 +231,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                   INTERSAL
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
-                  Jan a Out / 2026
+                  {periodLabel}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-slate-950/90 text-cyan-300 border border-cyan-500/40 text-[10px] font-mono font-medium flex items-center gap-1">
                   <Clock className="w-2.5 h-2.5 text-cyan-400" />
@@ -934,7 +937,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
               <p className="text-xs text-slate-400 mt-0.5">
                 {chartType === 'bar'
                   ? 'Clique nas barras dos meses para filtrar o line-up de navios'
-                  : 'Evolução e tendência do volume embarcado e projetado durante o ano (Jan a Out/2026)'}
+                  : `Evolução e tendência do volume embarcado e projetado durante o ano (${periodLabel})`}
               </p>
             </div>
 

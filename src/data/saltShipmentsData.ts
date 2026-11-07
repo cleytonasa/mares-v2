@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
-// Período: Janeiro a Outubro de 2026
-// Atualizado em: 05/11/2026 11:02
+// Período: Janeiro a Novembro de 2026
+// Atualizado em: 07/11/2026 14:24
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -935,15 +935,15 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "id": "sln2026039",
     "visitCode": "SLN2026039",
     "vesselName": "BULK MUSTIQUE",
-    "loaMeters": 0,
-    "dwt": 0,
-    "eta": "11/11/2026 00:00",
-    "etb": "11/11/2026 07:00",
+    "loaMeters": 199.99,
+    "dwt": 64047,
+    "eta": "12/11/2026 00:00",
+    "etb": "12/11/2026 07:00",
     "etd": "15/11/2026 12:00",
     "status": "Previsto",
-    "scVolumeTons": 47500,
+    "scVolumeTons": 44000,
     "sqVolumeTons": 0,
-    "totalVolumeTons": 47500,
+    "totalVolumeTons": 44000,
     "trafficType": "CBT",
     "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
@@ -955,11 +955,11 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "id": "sln2026040",
     "visitCode": "SLN2026040",
     "vesselName": "MARCOS DIAS",
-    "loaMeters": 0,
-    "dwt": 0,
+    "loaMeters": 199,
+    "dwt": 44523,
     "eta": "15/11/2026 00:00",
     "etb": "15/11/2026 14:00",
-    "etd": "19/11/2026 12:00",
+    "etd": "20/11/2026 12:00",
     "status": "Previsto",
     "scVolumeTons": 43000,
     "sqVolumeTons": 0,
@@ -994,16 +994,16 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
   {
     "id": "sdb2026007",
     "visitCode": "SDB2026007",
-    "vesselName": "TBN",
-    "loaMeters": 0,
-    "dwt": 0,
-    "eta": "24/11/2026 00:00",
-    "etb": "24/11/2026 07:00",
+    "vesselName": "FRIENDRICH SCHULTE",
+    "loaMeters": 179.95,
+    "dwt": 39851,
+    "eta": "22/11/2026 00:00",
+    "etb": "23/11/2026 14:00",
     "etd": "26/11/2026 12:00",
     "status": "Previsto",
-    "scVolumeTons": 21000,
+    "scVolumeTons": 37640,
     "sqVolumeTons": 0,
-    "totalVolumeTons": 21000,
+    "totalVolumeTons": 37640,
     "trafficType": "CBT",
     "trafficLabel": "Cabotagem",
     "shipper": "SDB",
@@ -1019,7 +1019,27 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 0,
     "eta": "27/11/2026 00:00",
     "etb": "27/11/2026 07:00",
-    "etd": "30/11/2026 12:00",
+    "etd": "29/11/2026 12:00",
+    "status": "Previsto",
+    "scVolumeTons": 21000,
+    "sqVolumeTons": 0,
+    "totalVolumeTons": 21000,
+    "trafficType": "CBT",
+    "trafficLabel": "Cabotagem",
+    "shipper": "SALINOR",
+    "month": 11,
+    "monthName": "Novembro",
+    "year": 2026
+  },
+  {
+    "id": "sln2026043",
+    "visitCode": "SLN2026043",
+    "vesselName": "TBN",
+    "loaMeters": 0,
+    "dwt": 0,
+    "eta": "27/11/2026 00:00",
+    "etb": "29/11/2026 14:00",
+    "etd": "02/12/2026 12:00",
     "status": "Previsto",
     "scVolumeTons": 45000,
     "sqVolumeTons": 0,
@@ -1289,29 +1309,29 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "monthName": "Novembro",
     "shortMonth": "Nov",
     "year": 2026,
-    "vesselCount": 6,
+    "vesselCount": 7,
     "concludedCount": 0,
     "operatingCount": 1,
     "confirmedCount": 0,
-    "plannedCount": 5,
+    "plannedCount": 6,
     "concludedTotalVolume": 0,
     "concludedScTotal": 0,
     "concludedSqTotal": 0,
-    "scTotal": 186500,
+    "scTotal": 220640,
     "sqTotal": 33200,
-    "totalVolume": 219700,
-    "salinorVolume": 198700,
-    "sdbVolume": 21000,
+    "totalVolume": 253840,
+    "salinorVolume": 216200,
+    "sdbVolume": 37640,
     "salinorConcludedVolume": 0,
     "sdbConcludedVolume": 0,
     "expVolume": 0,
-    "cbtVolume": 219700,
+    "cbtVolume": 253840,
     "expConcludedVolume": 0,
     "cbtConcludedVolume": 0
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '05/11/2026 11:02';
+export const LINEUP_LAST_UPDATED = '07/11/2026 14:24';
 
 export const OVERALL_TOTALS = {
   "concludedTotalTons": 1491279,
@@ -1335,9 +1355,9 @@ export const OVERALL_TOTALS = {
   "operatingTotalTons": 38200,
   "operatingVessels": 1,
   "confirmedVessels": 0,
-  "plannedTotalTons": 181500,
-  "plannedVessels": 5,
-  "totalProgrammedTons": 1710979
+  "plannedTotalTons": 215640,
+  "plannedVessels": 6,
+  "totalProgrammedTons": 1745119
 };
 
 /**
