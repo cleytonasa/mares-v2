@@ -6,6 +6,7 @@ import { WeeklyWeatherForecast } from './components/WeeklyWeatherForecast';
 import { WindGustChart } from './components/WindGustChart';
 import { RainfallChart } from './components/RainfallChart';
 import { InteractiveNauticalMap } from './components/InteractiveNauticalMap';
+import { OperationalRadioPage } from './components/OperationalRadioPage';
 import { TideTableMonthly } from './components/TideTableMonthly';
 import { InformativoGenerator } from './components/InformativoGenerator';
 import { AlertSettingsModal } from './components/AlertSettingsModal';
@@ -22,7 +23,7 @@ import {
   processMaritimeNotifications,
   NotificationPreferences,
 } from './services/notificationService';
-import { AlertTriangle, MapPin, Compass, Table, Crosshair, CloudSun, Map, Ship } from 'lucide-react';
+import { AlertTriangle, MapPin, Compass, Table, Crosshair, CloudSun, Map, Ship, Radio } from 'lucide-react';
 
 const DEFAULT_THRESHOLDS: AlertThresholds = {
   minTideHeight: 1.0,
@@ -35,7 +36,7 @@ const DEFAULT_THRESHOLDS: AlertThresholds = {
 
 export default function App() {
   const [selectedPortId, setSelectedPortId] = useState<'areia_branca' | 'macau'>('areia_branca');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'map' | 'report' | 'shipments'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'radio'>('dashboard');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [simulatedTime, setSimulatedTime] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -303,7 +304,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Interactive Map */}
+        {/* Tab 2: Interactive Nautical Map (Clean & Full Width) */}
         {activeTab === 'map' && (
           <InteractiveNauticalMap
             port={activePort}
@@ -314,6 +315,11 @@ export default function App() {
             onSelectPort={setSelectedPortId}
             onUpdateUserLocation={setUserLocation}
           />
+        )}
+
+        {/* Tab: Operational Radio VHF & Voice Dispatch Page (Entre Mapa Náutico e Tábua DHN) */}
+        {activeTab === 'radio' && (
+          <OperationalRadioPage />
         )}
 
         {/* Tab 3: 2026 DHN Monthly Table */}

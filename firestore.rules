@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Maritime PTT Voice Channel: Online Operators
+    match /maritime_operators/{operatorId} {
+      allow read, write: if true;
+    }
+
+    // Maritime PTT Voice Channel: Real-time Audio Transmissions
+    match /maritime_radio_dispatches/{dispatchId} {
+      allow read, create: if true;
+      allow update, delete: if true;
+    }
+  }
+}
