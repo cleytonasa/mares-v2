@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Anchor,
   ArrowDownUp,
@@ -34,9 +34,15 @@ import {
 
 interface SaltShipmentsDashboardProps {
   onSelectVesselOnMap?: (vesselName: string) => void;
+  currentTime?: Date;
+  resetKey?: number;
 }
 
-export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () => {
+export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = ({
+  onSelectVesselOnMap,
+  currentTime,
+  resetKey = 0,
+}) => {
   const [selectedMonth, setSelectedMonth] = useState<number | 'ALL'>('ALL');
   const [selectedShipper, setSelectedShipper] = useState<'ALL' | 'SALINOR' | 'SDB'>('ALL');
   const [selectedTraffic, setSelectedTraffic] = useState<'ALL' | 'EXP' | 'CBT'>('ALL');
@@ -47,7 +53,30 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
   const [copiedNotification, setCopiedNotification] = useState<boolean>(false);
   const [hoveredMonth, setHoveredMonth] = useState<number | null>(null);
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
-  const [timelineMonth, setTimelineMonth] = useState<number>(10); // Default to October 2026 (current active line-up month with vessel in operation)
+
+  // Determina o mês corrente (1 a 12) em tempo real para que o cronograma sempre abra no mês atual
+  const currentRealMonth = useMemo(() => {
+    const dateRef = currentTime || new Date();
+    const currentM = dateRef.getMonth() + 1; // Mês corrente (1 a 12)
+    // Se o mês corrente estiver disponível no line-up da Intersal, seleciona-o
+    if (MONTHLY_SALT_SUMMARIES.some((m) => m.month === currentM)) {
+      return currentM;
+    }
+    // Caso contrário, busca o mês onde há navio 'Em operação'
+    const operatingMonth = SALT_SHIPMENTS_2026.find((v) => v.status === 'Em operação')?.month;
+    if (operatingMonth) return operatingMonth;
+    // Fallback: o mês mais recente disponível
+    return MONTHLY_SALT_SUMMARIES[MONTHLY_SALT_SUMMARIES.length - 1]?.month || 11;
+  }, [currentTime]);
+
+  // O cronograma sempre inicia selecionado no mês corrente
+  const [timelineMonth, setTimelineMonth] = useState<number>(currentRealMonth);
+
+  // Sempre que a prop resetKey mudar (ex: clique no botão Line-Up), redefine o cronograma para o mês corrente
+  useEffect(() => {
+    setTimelineMonth(currentRealMonth);
+    setSelectedMonth('ALL');
+  }, [resetKey, currentRealMonth]);
 
   // Active Operating Vessel & Next Vessel in Line-up (determined right after the last concluded vessel)
   const { operatingVessel: activeOperatingVessel, nextPlannedVessel } = useMemo(
@@ -222,7 +251,14 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
         
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 shadow-inner shrink-0">
+            <div
+              onClick={() => {
+                setTimelineMonth(currentRealMonth);
+                setSelectedMonth('ALL');
+              }}
+              className="p-3 sm:p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 shadow-inner shrink-0 cursor-pointer hover:bg-cyan-500/20 hover:scale-105 transition"
+              title="Redefinir para o mês corrente"
+            >
               <Ship className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
@@ -248,7 +284,14 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                   PDF Oficial Intersal
                 </a>
               </div>
-              <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight mt-1 flex items-center gap-2">
+              <h1
+                onClick={() => {
+                  setTimelineMonth(currentRealMonth);
+                  setSelectedMonth('ALL');
+                }}
+                className="text-lg sm:text-2xl font-black text-white tracking-tight mt-1 flex items-center gap-2 cursor-pointer hover:text-cyan-300 transition"
+                title="Redefinir para o mês corrente"
+              >
                 Painel de Embarque (Line-Up)
               </h1>
             </div>
@@ -341,14 +384,25 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
               <span className="text-[10px] text-slate-400 font-mono">
                 {timelineVessels.totalCount} navios no mês
               </span>
+              {timelineMonth !== currentRealMonth && (
+                <button
+                  type="button"
+                  onClick={() => setTimelineMonth(currentRealMonth)}
+                  className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/90 text-cyan-300 border border-cyan-500/50 hover:bg-cyan-900 transition flex items-center gap-1 cursor-pointer shadow-sm animate-pulse"
+                  title="Retornar para o mês corrente"
+                >
+                  <Clock className="w-2.5 h-2.5 text-cyan-400" />
+                  <span>Voltar ao Mês Atual ({MONTHLY_SALT_SUMMARIES.find((m) => m.month === currentRealMonth)?.shortMonth || 'Nov'})</span>
+                </button>
+              )}
             </div>
 
             {/* Month Switcher Controls */}
             <div className="flex items-center gap-1.5 self-start sm:self-auto bg-slate-950/90 p-1 rounded-xl border border-slate-800 shadow-inner">
               <button
                 type="button"
-                onClick={() => setTimelineMonth((prev) => Math.max(1, prev - 1))}
-                disabled={timelineMonth === 1}
+                onClick={() => setTimelineMonth((prev) => Math.max(MONTHLY_SALT_SUMMARIES[0]?.month || 1, prev - 1))}
+                disabled={timelineMonth <= (MONTHLY_SALT_SUMMARIES[0]?.month || 1)}
                 className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 hover:text-white hover:bg-slate-800"
                 title="Ver mês anterior"
               >
@@ -358,6 +412,11 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
 
               <div className="px-3 py-1 bg-cyan-950/70 border border-cyan-500/30 rounded-lg text-cyan-300 text-xs font-bold flex items-center gap-1.5">
                 <span>{timelineMonthInfo.monthName} / 2026</span>
+                {timelineMonth === currentRealMonth && (
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase tracking-wider">
+                    Atual
+                  </span>
+                )}
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-900/60 text-cyan-200 font-mono">
                   {timelineMonthInfo.vesselCount} navios
                 </span>
@@ -365,8 +424,8 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
 
               <button
                 type="button"
-                onClick={() => setTimelineMonth((prev) => Math.min(MONTHLY_SALT_SUMMARIES.length, prev + 1))}
-                disabled={timelineMonth === MONTHLY_SALT_SUMMARIES.length}
+                onClick={() => setTimelineMonth((prev) => Math.min(MONTHLY_SALT_SUMMARIES[MONTHLY_SALT_SUMMARIES.length - 1]?.month || 12, prev + 1))}
+                disabled={timelineMonth >= (MONTHLY_SALT_SUMMARIES[MONTHLY_SALT_SUMMARIES.length - 1]?.month || 12)}
                 className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 hover:text-white hover:bg-slate-800"
                 title="Ver próximo mês"
               >
@@ -380,6 +439,7 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
           <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
             {MONTHLY_SALT_SUMMARIES.map((m) => {
               const isActive = timelineMonth === m.month;
+              const isCurrent = m.month === currentRealMonth;
               return (
                 <button
                   key={m.month}
@@ -387,12 +447,18 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
                   onClick={() => setTimelineMonth(m.month)}
                   className={`px-2 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1 ${
                     isActive
-                      ? 'bg-cyan-500 text-slate-950 shadow-md font-extrabold'
+                      ? 'bg-cyan-500 text-slate-950 shadow-md font-extrabold ring-1 ring-cyan-300'
+                      : isCurrent
+                      ? 'bg-cyan-950/70 hover:bg-cyan-900/70 text-cyan-300 border border-cyan-500/50'
                       : 'bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800/80'
                   }`}
+                  title={isCurrent ? `${m.monthName} (Mês Atual)` : m.monthName}
                 >
                   <span>{m.shortMonth}</span>
-                  <span className={`text-[9px] font-mono ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+                  {isCurrent && !isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                  )}
+                  <span className={`text-[9px] font-mono ${isActive ? 'text-slate-900' : isCurrent ? 'text-cyan-400' : 'text-slate-500'}`}>
                     ({m.vesselCount})
                   </span>
                 </button>
@@ -1424,19 +1490,29 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = () 
             >
               Todos ({MONTHLY_SALT_SUMMARIES.length} meses)
             </button>
-            {MONTHLY_SALT_SUMMARIES.map((m) => (
-              <button
-                key={m.month}
-                onClick={() => setSelectedMonth(m.month)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                  selectedMonth === m.month
-                    ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
-                    : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                {m.shortMonth}
-              </button>
-            ))}
+            {MONTHLY_SALT_SUMMARIES.map((m) => {
+              const isCurrent = m.month === currentRealMonth;
+              const isSelected = selectedMonth === m.month;
+              return (
+                <button
+                  key={m.month}
+                  onClick={() => setSelectedMonth(m.month)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-1 ${
+                    isSelected
+                      ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
+                      : isCurrent
+                      ? 'bg-slate-950 text-cyan-300 border border-cyan-500/40 hover:bg-slate-800'
+                      : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title={isCurrent ? `${m.monthName} (Mês Atual)` : m.monthName}
+                >
+                  <span>{m.shortMonth}</span>
+                  {isCurrent && !isSelected && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search Input & Secondary Filters */}

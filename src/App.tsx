@@ -37,9 +37,17 @@ const DEFAULT_THRESHOLDS: AlertThresholds = {
 export default function App() {
   const [selectedPortId, setSelectedPortId] = useState<'areia_branca' | 'macau'>('areia_branca');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'radio'>('dashboard');
+  const [shipmentsResetKey, setShipmentsResetKey] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [simulatedTime, setSimulatedTime] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  const handleSelectTab = (tab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'radio') => {
+    setActiveTab(tab);
+    if (tab === 'shipments') {
+      setShipmentsResetKey((prev) => prev + 1);
+    }
+  };
 
   // Notifications State (Preamar & Hourly)
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(getSavedNotificationPreferences());
@@ -161,8 +169,8 @@ export default function App() {
           setSimulatedTime(null);
         }}
         activeTab={activeTab}
-        onChangeTab={setActiveTab}
-        currentTime={currentTime}
+        onChangeTab={handleSelectTab}
+        currentTime={effectiveTime}
         userLocation={userLocation}
         notificationsEnabled={notifPrefs.enabled}
         onOpenNotifications={() => setIsNotifModalOpen(true)}
@@ -283,7 +291,7 @@ export default function App() {
 
                 {/* 4. Embarques de Sal (INTERSAL) */}
                 <div
-                  onClick={() => setActiveTab('shipments')}
+                  onClick={() => handleSelectTab('shipments')}
                   className="p-2.5 sm:p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-500/50 hover:bg-slate-950 cursor-pointer transition shadow-md group flex flex-col justify-between"
                 >
                   <div>
@@ -347,7 +355,11 @@ export default function App() {
 
         {/* Tab 5: Salt Shipments & Line-Up INTERSAL */}
         {activeTab === 'shipments' && (
-          <SaltShipmentsDashboard />
+          <SaltShipmentsDashboard
+            key={`shipments-${shipmentsResetKey}`}
+            currentTime={effectiveTime}
+            resetKey={shipmentsResetKey}
+          />
         )}
       </main>
 
