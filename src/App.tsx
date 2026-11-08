@@ -12,6 +12,7 @@ import { InformativoGenerator } from './components/InformativoGenerator';
 import { AlertSettingsModal } from './components/AlertSettingsModal';
 import { NotificationModal } from './components/NotificationModal';
 import { SaltShipmentsDashboard } from './components/SaltShipmentsDashboard';
+import { GlobalLiveRadioReceiver } from './components/GlobalLiveRadioReceiver';
 import { PORTS_DATA } from './data/portsData';
 import { PortConfig, WeatherData, AlertThresholds, CustomUserLocation } from './types/maritime';
 import { INITIAL_USER_LOCATION, decimalToDMS } from './data/vesselTrafficData';
@@ -362,6 +363,12 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Receptor Global de Voz ao Vivo (Escuta ativa em qualquer aba para quem estiver com o site aberto) */}
+      <GlobalLiveRadioReceiver
+        activeTab={activeTab}
+        onNavigateToRadio={() => handleSelectTab('radio')}
+      />
 
       {/* Alert Thresholds Modal */}
       <AlertSettingsModal
