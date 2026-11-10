@@ -1,10 +1,10 @@
 {
-  "lastSyncTime": "2026-11-07T19:45:05.079Z",
-  "pdfHash": "e66a3528cf17b96f15d6ea752199f9d1bf2f4db0be359265eed0ce4efc5e33d3",
-  "lastModified": "Sat, 07 Nov 2026 19:10:17 GMT",
-  "etag": "\"517db-65fb47aae0e5c\"",
-  "contentLength": "333787",
-  "lineupLastUpdated": "07/11/2026 14:24",
+  "lastSyncTime": "2026-11-10T17:13:48.288Z",
+  "pdfHash": "70c6607972351ee0b1b4d80747923ddbc20040ebf2e2619d06980b273eb8f47e",
+  "lastModified": "Tue, 10 Nov 2026 16:09:37 GMT",
+  "etag": "\"51916-65fee4e1f61de\"",
+  "contentLength": "334102",
+  "lineupLastUpdated": "10/11/2026 13:08",
   "totalVessels": 50,
-  "totalProgrammedTons": 1745119
+  "totalProgrammedTons": 1745619
 }
