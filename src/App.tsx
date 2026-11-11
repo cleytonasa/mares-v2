@@ -6,11 +6,13 @@ import { WeeklyWeatherForecast } from './components/WeeklyWeatherForecast';
 import { WindGustChart } from './components/WindGustChart';
 import { RainfallChart } from './components/RainfallChart';
 import { InteractiveNauticalMap } from './components/InteractiveNauticalMap';
+import { OperationalRadioPage } from './components/OperationalRadioPage';
 import { TideTableMonthly } from './components/TideTableMonthly';
 import { InformativoGenerator } from './components/InformativoGenerator';
 import { AlertSettingsModal } from './components/AlertSettingsModal';
 import { NotificationModal } from './components/NotificationModal';
 import { SaltShipmentsDashboard } from './components/SaltShipmentsDashboard';
+import { GlobalLiveRadioReceiver } from './components/GlobalLiveRadioReceiver';
 import { PORTS_DATA } from './data/portsData';
 import { PortConfig, WeatherData, AlertThresholds, CustomUserLocation } from './types/maritime';
 import { INITIAL_USER_LOCATION, decimalToDMS } from './data/vesselTrafficData';
@@ -22,7 +24,7 @@ import {
   processMaritimeNotifications,
   NotificationPreferences,
 } from './services/notificationService';
-import { AlertTriangle, MapPin, Compass, Table, Crosshair, CloudSun, Map, Ship } from 'lucide-react';
+import { AlertTriangle, MapPin, Compass, Table, Crosshair, CloudSun, Map, Ship, Radio } from 'lucide-react';
 
 const DEFAULT_THRESHOLDS: AlertThresholds = {
   minTideHeight: 1.0,
@@ -35,13 +37,13 @@ const DEFAULT_THRESHOLDS: AlertThresholds = {
 
 export default function App() {
   const [selectedPortId, setSelectedPortId] = useState<'areia_branca' | 'macau'>('areia_branca');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'map' | 'report' | 'shipments'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'radio'>('dashboard');
   const [shipmentsResetKey, setShipmentsResetKey] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [simulatedTime, setSimulatedTime] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const handleSelectTab = (tab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments') => {
+  const handleSelectTab = (tab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'radio') => {
     setActiveTab(tab);
     if (tab === 'shipments') {
       setShipmentsResetKey((prev) => prev + 1);
@@ -324,6 +326,11 @@ export default function App() {
           />
         )}
 
+        {/* Tab: Operational Radio VHF & Voice Dispatch Page (Entre Mapa Náutico e Tábua DHN) */}
+        {activeTab === 'radio' && (
+          <OperationalRadioPage />
+        )}
+
         {/* Tab 3: 2026 DHN Monthly Table */}
         {activeTab === 'table' && (
           <TideTableMonthly
@@ -356,6 +363,12 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Receptor Global de Voz ao Vivo (Escuta ativa em qualquer aba para quem estiver com o site aberto) */}
+      <GlobalLiveRadioReceiver
+        activeTab={activeTab}
+        onNavigateToRadio={() => handleSelectTab('radio')}
+      />
 
       {/* Alert Thresholds Modal */}
       <AlertSettingsModal
