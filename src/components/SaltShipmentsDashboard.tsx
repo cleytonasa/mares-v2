@@ -1071,7 +1071,6 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = ({
                   const sqPct = isConcluded ? (m.concludedSqTotal / total) * 100 : 0;
                   const isSelected = selectedMonth === m.month;
                   const isRecord = isConcluded && m.month === 5; // Maio recorde 214k
-                  const isSqRecord = isConcluded && m.month === 7; // Julho recorde SQ 112k
 
                   return (
                     <div
@@ -1106,11 +1105,6 @@ export const SaltShipmentsDashboard: React.FC<SaltShipmentsDashboardProps> = ({
                         {isRecord && (
                           <div className="absolute top-0 inset-x-0 bg-amber-500 text-slate-950 text-[8px] font-extrabold text-center py-0.5 uppercase tracking-tighter">
                             Recorde
-                          </div>
-                        )}
-                        {isSqRecord && (
-                          <div className="absolute top-0 inset-x-0 bg-emerald-500 text-slate-950 text-[8px] font-extrabold text-center py-0.5 uppercase tracking-tighter">
-                            Top SQ
                           </div>
                         )}
 

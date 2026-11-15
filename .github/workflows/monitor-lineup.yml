@@ -32,7 +32,7 @@ jobs:
           cache: 'npm'
 
       - name: Instalar Dependências
-        run: npm ci || npm install
+        run: npm install --no-audit
 
       - name: Executar Sincronizador Intersal
         id: sync
@@ -69,13 +69,24 @@ jobs:
           # Obter data da atualização registrada pelo sincronizador
           UPDATE_DATE=$(node -e "try { const fs=require('fs'); console.log(JSON.parse(fs.readFileSync('./scripts/last_sync.json')).lineupLastUpdated); } catch(e) { console.log(''); }")
           
-          git add -f src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf
+          git add -f src/data/saltShipmentsData.ts scripts/last_sync.json public/programacao-navios.pdf package-lock.json
           if [ -d "dist" ]; then git add -f dist; fi
           if [ -d "production" ]; then git add -f production; fi
           if [ -d "assets" ]; then git add -f assets; fi
           if [ -f "dist.tar.gz" ]; then git add -f dist.tar.gz; fi
           
           git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE)" || echo "Nenhuma alteração para commitar."
-          git pull --rebase origin ${{ github.ref_name }} || true
-          git push origin HEAD:${{ github.ref_name }}
+          
+          # Detectar branch alvo dinamicamente para evitar erros em execuções de schedule
+          TARGET_BRANCH="${{ github.ref_name }}"
+          if [ -z "$TARGET_BRANCH" ] || [ "$TARGET_BRANCH" = "null" ]; then
+            TARGET_BRANCH=$(git branch --show-current)
+          fi
+          if [ -z "$TARGET_BRANCH" ] || [ "$TARGET_BRANCH" = "HEAD" ]; then
+            TARGET_BRANCH="main"
+          fi
+          echo "Publicando na branch: $TARGET_BRANCH"
+          
+          git pull --rebase origin "$TARGET_BRANCH" || true
+          git push origin "HEAD:$TARGET_BRANCH"
 
