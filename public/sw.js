@@ -1,5 +1,5 @@
 // Intersal Service Worker for PWA and Push Notifications
-const CACHE_NAME = 'intersal-maritime-v3';
+const CACHE_NAME = 'intersal-maritime-v4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
