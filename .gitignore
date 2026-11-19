@@ -5,3 +5,8 @@ coverage/
 *.log
 .env*
 !.env.example
+**/assets/aistudio/
+public/assets/aistudio/
+assets/aistudio/
+production/assets/aistudio/
+dist/assets/aistudio/
