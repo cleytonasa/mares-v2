@@ -1,13 +1,13 @@
 import React from 'react';
-import { Anchor, Bell, BellRing, Compass, Map, Ship, Table, Waves } from 'lucide-react';
+import { Anchor, BarChart3, Bell, BellRing, Compass, Map, Ship, Table, Waves } from 'lucide-react';
 import { PortConfig, CustomUserLocation } from '../types/maritime';
 import { IntersalLogo } from './IntersalLogo';
 
 interface NavbarProps {
   activePort: PortConfig;
   onSelectPort: (portId: 'areia_branca' | 'macau') => void;
-  activeTab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments';
-  onChangeTab: (tab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments') => void;
+  activeTab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'kpis';
+  onChangeTab: (tab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'kpis') => void;
   currentTime: Date;
   userLocation: CustomUserLocation;
   notificationsEnabled?: boolean;
@@ -135,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 id="nav-tab-shipments"
                 onClick={() => onChangeTab('shipments')}
                 title="Line-Up de Navios INTERSAL"
-                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === 'shipments'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
@@ -143,6 +143,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Ship className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 text-cyan-400" />
                 <span>Line-Up</span>
+              </button>
+
+              <button
+                id="nav-tab-kpis"
+                onClick={() => onChangeTab('kpis')}
+                title="KPIs e Produtividade de Navios"
+                className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 ${
+                  activeTab === 'kpis'
+                    ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                }`}
+              >
+                <BarChart3 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 text-emerald-400" />
+                <span>KPIs</span>
               </button>
 
               <button

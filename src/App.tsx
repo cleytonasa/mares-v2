@@ -11,6 +11,7 @@ import { InformativoGenerator } from './components/InformativoGenerator';
 import { AlertSettingsModal } from './components/AlertSettingsModal';
 import { NotificationModal } from './components/NotificationModal';
 import { SaltShipmentsDashboard } from './components/SaltShipmentsDashboard';
+import { VesselKpisDashboard } from './components/VesselKpisDashboard';
 import { PORTS_DATA } from './data/portsData';
 import { PortConfig, WeatherData, AlertThresholds, CustomUserLocation } from './types/maritime';
 import { INITIAL_USER_LOCATION, decimalToDMS } from './data/vesselTrafficData';
@@ -35,13 +36,13 @@ const DEFAULT_THRESHOLDS: AlertThresholds = {
 
 export default function App() {
   const [selectedPortId, setSelectedPortId] = useState<'areia_branca' | 'macau'>('areia_branca');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'map' | 'report' | 'shipments'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'kpis'>('dashboard');
   const [shipmentsResetKey, setShipmentsResetKey] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [simulatedTime, setSimulatedTime] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const handleSelectTab = (tab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments') => {
+  const handleSelectTab = (tab: 'dashboard' | 'table' | 'map' | 'report' | 'shipments' | 'kpis') => {
     setActiveTab(tab);
     if (tab === 'shipments') {
       setShipmentsResetKey((prev) => prev + 1);
@@ -355,6 +356,9 @@ export default function App() {
             resetKey={shipmentsResetKey}
           />
         )}
+
+        {/* Tab 6: Vessel Operational KPIs */}
+        {activeTab === 'kpis' && <VesselKpisDashboard />}
       </main>
 
       {/* Alert Thresholds Modal */}
