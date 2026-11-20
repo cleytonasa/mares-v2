@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Novembro de 2026
-// Atualizado em: 18/11/2026 19:14
+// Atualizado em: 20/11/2026 18:23
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -959,31 +959,11 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 44523,
     "eta": "17/11/2026 14:10",
     "etb": "18/11/2026 15:55",
-    "etd": "23/11/2026 12:00",
+    "etd": "25/11/2026 15:00",
     "status": "Em operação",
     "scVolumeTons": 16900,
     "sqVolumeTons": 26400,
     "totalVolumeTons": 43300,
-    "trafficType": "CBT",
-    "trafficLabel": "Cabotagem",
-    "shipper": "SALINOR",
-    "month": 11,
-    "monthName": "Novembro",
-    "year": 2026
-  },
-  {
-    "id": "sln2026041",
-    "visitCode": "SLN2026041",
-    "vesselName": "TBN",
-    "loaMeters": 0,
-    "dwt": 0,
-    "eta": "21/11/2026 00:00",
-    "etb": "23/11/2026 14:00",
-    "etd": "26/11/2026 08:00",
-    "status": "Previsto",
-    "scVolumeTons": 25000,
-    "sqVolumeTons": 0,
-    "totalVolumeTons": 25000,
     "trafficType": "CBT",
     "trafficLabel": "Cabotagem",
     "shipper": "SALINOR",
@@ -997,13 +977,13 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "vesselName": "FRIENDRICH SCHULTE",
     "loaMeters": 179.95,
     "dwt": 39851,
-    "eta": "24/11/2026 00:00",
-    "etb": "26/11/2026 11:00",
+    "eta": "25/11/2026 04:00",
+    "etb": "26/11/2026 08:00",
     "etd": "29/11/2026 13:00",
     "status": "Previsto",
-    "scVolumeTons": 37640,
+    "scVolumeTons": 37402,
     "sqVolumeTons": 0,
-    "totalVolumeTons": 37640,
+    "totalVolumeTons": 37402,
     "trafficType": "EXP",
     "trafficLabel": "Exportação",
     "shipper": "SDB",
@@ -1269,29 +1249,29 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "monthName": "Novembro",
     "shortMonth": "Nov",
     "year": 2026,
-    "vesselCount": 5,
+    "vesselCount": 4,
     "concludedCount": 2,
     "operatingCount": 1,
     "confirmedCount": 0,
-    "plannedCount": 2,
+    "plannedCount": 1,
     "concludedTotalVolume": 85644,
     "concludedScTotal": 52444,
     "concludedSqTotal": 33200,
-    "scTotal": 131984,
+    "scTotal": 106746,
     "sqTotal": 59600,
-    "totalVolume": 191584,
-    "salinorVolume": 153944,
-    "sdbVolume": 37640,
+    "totalVolume": 166346,
+    "salinorVolume": 128944,
+    "sdbVolume": 37402,
     "salinorConcludedVolume": 85644,
     "sdbConcludedVolume": 0,
-    "expVolume": 85084,
-    "cbtVolume": 106500,
+    "expVolume": 84846,
+    "cbtVolume": 81500,
     "expConcludedVolume": 47444,
     "cbtConcludedVolume": 38200
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '18/11/2026 19:14';
+export const LINEUP_LAST_UPDATED = '20/11/2026 18:23';
 
 export const OVERALL_TOTALS = {
   "concludedTotalTons": 1576923,
@@ -1315,9 +1295,9 @@ export const OVERALL_TOTALS = {
   "operatingTotalTons": 43300,
   "operatingVessels": 1,
   "confirmedVessels": 0,
-  "plannedTotalTons": 62640,
-  "plannedVessels": 2,
-  "totalProgrammedTons": 1682863
+  "plannedTotalTons": 37402,
+  "plannedVessels": 1,
+  "totalProgrammedTons": 1657625
 };
 
 /**
