@@ -1,0 +1,63 @@
+name: Build de Produção Automático
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'vite.config.ts'
+      - 'metadata.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: main-production-sync
+  cancel-in-progress: false
+
+jobs:
+  build-production:
+    name: Compilar e Sincronizar Pasta Production
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[skip ci]')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Instalar Dependências
+        run: npm ci --no-audit || npm install --no-audit
+
+      - name: Compilar Projeto (Build de Produção)
+        run: npm run build
+
+      - name: Publicar Build Atualizado na Branch Main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -d "dist" ]; then git add -A -f dist; fi
+          if [ -d "production" ]; then git add -A -f production; fi
+          if [ -d "assets" ]; then git add -A -f assets; fi
+          if [ -f "dist.tar.gz" ]; then git add -f dist.tar.gz; fi
+
+          if git diff --cached --quiet; then
+            echo "Pasta production já está 100% sincronizada com o código-fonte."
+            exit 0
+          fi
+
+          git commit -m "Auto: Build de produção sincronizado [skip ci]"
+          git pull --rebase origin main || true
+          git push origin HEAD:main

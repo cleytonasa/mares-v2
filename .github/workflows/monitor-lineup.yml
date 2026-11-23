@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: monitor-lineup-intersal
+  group: main-production-sync
   cancel-in-progress: false
 
 jobs:
@@ -84,7 +84,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE)"
+          git commit -m "Auto: Atualização Line-Up Intersal ($UPDATE_DATE) [skip ci]"
 
           # Detectar branch alvo dinamicamente para evitar erros em execuções de schedule
           TARGET_BRANCH="${{ github.ref_name }}"

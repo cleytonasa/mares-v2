@@ -61,7 +61,9 @@ function fetchHeaders(targetUrl) {
         rejectUnauthorized: false,
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) IntersalMonitor/1.0',
-          'Accept': '*/*'
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         }
       },
       (res) => {
@@ -100,7 +102,9 @@ function downloadFile(targetUrl) {
         rejectUnauthorized: false,
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) IntersalMonitor/1.0',
-          'Accept': 'application/pdf,*/*'
+          'Accept': 'application/pdf,*/*',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         }
       },
       (res) => {
@@ -586,11 +590,12 @@ export function getActiveAndNextVessel(vessels: SaltVesselRecord[] = SALT_SHIPME
  */
 async function main() {
   const force = process.argv.includes('--force');
+  const cacheBustedUrl = `${INTERSAL_PDF_URL}?t=${Date.now()}`;
   console.log(`[Intersal Sync] Verificando cabeçalhos e disponibilidade em ${INTERSAL_PDF_URL}...`);
 
   let headerInfo = null;
   try {
-    headerInfo = await fetchHeaders(INTERSAL_PDF_URL);
+    headerInfo = await fetchHeaders(cacheBustedUrl);
   } catch (err) {
     console.warn(`[Intersal Sync] Aviso ao consultar cabeçalhos (${err.message}). Prosseguindo com download...`);
   }
@@ -612,7 +617,7 @@ async function main() {
 
   // Baixa o PDF para garantir validação de integridade por hash SHA-256
   console.log(`[Intersal Sync] Baixando arquivo PDF mais recente...`);
-  const pdfBuffer = await downloadFile(INTERSAL_PDF_URL);
+  const pdfBuffer = await downloadFile(cacheBustedUrl);
   const pdfHash = computeBufferHash(pdfBuffer);
   console.log(`[Intersal Sync] PDF baixado com sucesso (${pdfBuffer.length} bytes, SHA-256: ${pdfHash.slice(0, 12)}...).`);
 
