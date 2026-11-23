@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default-deny all read and write access across the entire database
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Maritime PTT Voice Channel collections: strictly locked down
+    // No client-side unauthenticated access is permitted.
+    match /maritime_operators/{operatorId} {
+      allow read, write: if false;
+    }
+
+    match /maritime_radio_dispatches/{dispatchId} {
+      allow read, write: if false;
+    }
+  }
+}

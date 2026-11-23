@@ -5,7 +5,6 @@ import {
   BarChart3,
   Clock,
   Download,
-  Gauge,
   Repeat,
   Scale,
   Search,
@@ -28,11 +27,10 @@ import {
   formatIntegerBR,
 } from '../utils/vesselKpiCalculations';
 
-type RankingMetric = 'productivity' | 'duration' | 'trips' | 'dwt';
-type MonthlyChartMetric = 'productivity' | 'operationHours' | 'waitingHours';
+type RankingMetric = 'duration' | 'trips' | 'dwt';
+type MonthlyChartMetric = 'operationHours' | 'waitingHours';
 type TableViewMode = 'calls' | 'fleet';
 type CallSortField =
-  | 'productivityTph'
   | 'operationHours'
   | 'waitingHours'
   | 'totalVolumeTons'
@@ -42,7 +40,6 @@ type FleetSortField =
   | 'tripCount'
   | 'totalVolumeTons'
   | 'totalOperationHours'
-  | 'avgProductivityTph'
   | 'maxDwt';
 
 export const VesselKpisDashboard: React.FC = () => {
@@ -51,12 +48,12 @@ export const VesselKpisDashboard: React.FC = () => {
   const [selectedTraffic, setSelectedTraffic] = useState<'ALL' | 'EXP' | 'CBT'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const [rankingTab, setRankingTab] = useState<RankingMetric>('productivity');
-  const [chartMetric, setChartMetric] = useState<MonthlyChartMetric>('productivity');
+  const [rankingTab, setRankingTab] = useState<RankingMetric>('duration');
+  const [chartMetric, setChartMetric] = useState<MonthlyChartMetric>('operationHours');
   const [hoveredMonth, setHoveredMonth] = useState<number | null>(null);
 
   const [tableView, setTableView] = useState<TableViewMode>('calls');
-  const [callSortField, setCallSortField] = useState<CallSortField>('productivityTph');
+  const [callSortField, setCallSortField] = useState<CallSortField>('operationHours');
   const [callSortAsc, setCallSortAsc] = useState<boolean>(false);
   const [fleetSortField, setFleetSortField] = useState<FleetSortField>('tripCount');
   const [fleetSortAsc, setFleetSortAsc] = useState<boolean>(false);
@@ -105,7 +102,7 @@ export const VesselKpisDashboard: React.FC = () => {
     [filteredEnriched]
   );
 
-  // Monthly productivity/time chart series
+  // Monthly operational time chart series
   const monthlySeries = useMemo(
     () => buildMonthlyKpiSummaries(scopeEnriched),
     [scopeEnriched]
@@ -113,11 +110,6 @@ export const VesselKpisDashboard: React.FC = () => {
 
   // Core Executive Records & Benchmarks
   const summaryStats = useMemo(() => {
-    const topProductivityCall =
-      validTimedCalls.length > 0
-        ? [...validTimedCalls].sort((a, b) => (b.productivityTph || 0) - (a.productivityTph || 0))[0]
-        : null;
-
     const longestOperationCall =
       validTimedCalls.length > 0
         ? [...validTimedCalls].sort((a, b) => (b.operationHours || 0) - (a.operationHours || 0))[0]
@@ -138,11 +130,7 @@ export const VesselKpisDashboard: React.FC = () => {
         ? [...namedWithDwt].sort((a, b) => b.record.dwt - a.record.dwt || b.record.loaMeters - a.record.loaMeters)[0]
         : null;
 
-    const totalTimedVolume = validTimedCalls.reduce((sum, c) => sum + c.record.totalVolumeTons, 0);
     const totalOperationHours = validTimedCalls.reduce((sum, c) => sum + (c.operationHours || 0), 0);
-
-    const avgProductivityTph = totalOperationHours > 0 ? totalTimedVolume / totalOperationHours : 0;
-    const avgProductivityTpd = avgProductivityTph * 24;
     const avgOperationHours =
       validTimedCalls.length > 0 ? totalOperationHours / validTimedCalls.length : 0;
 
@@ -165,12 +153,9 @@ export const VesselKpisDashboard: React.FC = () => {
         : 0;
 
     return {
-      topProductivityCall,
       longestOperationCall,
       mostTripsVessel,
       largestDwtCall,
-      avgProductivityTph,
-      avgProductivityTpd,
       avgOperationHours,
       avgWaitingHours,
       avgDwtUtilizationPct,
@@ -182,21 +167,6 @@ export const VesselKpisDashboard: React.FC = () => {
 
   // Ranked lists for the Comparative Rankings panel
   const rankedItems = useMemo(() => {
-    if (rankingTab === 'productivity') {
-      const sorted = [...validTimedCalls]
-        .sort((a, b) => (b.productivityTph || 0) - (a.productivityTph || 0))
-        .slice(0, 8);
-      const maxVal = sorted[0]?.productivityTph || 1;
-      return sorted.map((item) => ({
-        key: item.record.id,
-        name: item.record.vesselName,
-        meta: `${item.record.monthName} · ${formatIntegerBR(item.record.totalVolumeTons)} t · ${formatDaysHours(item.operationHours)}`,
-        primary: `${formatDecimalBR(item.productivityTph, 1)} t/h`,
-        secondary: `${formatIntegerBR(item.productivityTpd)} t/dia`,
-        pct: Math.min(100, ((item.productivityTph || 0) / maxVal) * 100),
-      }));
-    }
-
     if (rankingTab === 'duration') {
       const sorted = [...validTimedCalls]
         .sort((a, b) => (b.operationHours || 0) - (a.operationHours || 0))
@@ -205,7 +175,7 @@ export const VesselKpisDashboard: React.FC = () => {
       return sorted.map((item) => ({
         key: item.record.id,
         name: item.record.vesselName,
-        meta: `${item.record.monthName} · ${formatIntegerBR(item.record.totalVolumeTons)} t · ${formatDecimalBR(item.productivityTph, 1)} t/h`,
+        meta: `${item.record.monthName} · ${formatIntegerBR(item.record.totalVolumeTons)} t · ${item.record.shipper}`,
         primary: `${formatDecimalBR(item.operationHours, 1)} h`,
         secondary: formatDaysHours(item.operationHours),
         pct: Math.min(100, ((item.operationHours || 0) / maxVal) * 100),
@@ -222,7 +192,9 @@ export const VesselKpisDashboard: React.FC = () => {
         name: item.vesselName,
         meta: `${formatIntegerBR(item.totalVolumeTons)} t · ${formatDaysHours(item.totalOperationHours)} em operação`,
         primary: `${item.tripCount} ${item.tripCount === 1 ? 'viagem' : 'viagens'}`,
-        secondary: item.avgProductivityTph ? `${formatDecimalBR(item.avgProductivityTph, 1)} t/h` : 'Em andamento',
+        secondary: item.avgOperationHours
+          ? `Média ${formatDecimalBR(item.avgOperationHours, 1)} h`
+          : 'Em andamento',
         pct: Math.min(100, (item.tripCount / maxVal) * 100),
       }));
     }
@@ -259,8 +231,6 @@ export const VesselKpisDashboard: React.FC = () => {
     return [...list].sort((a, b) => {
       const getVal = (item: EnrichedVesselKpi): number => {
         switch (callSortField) {
-          case 'productivityTph':
-            return item.productivityTph ?? -1;
           case 'operationHours':
             return item.operationHours ?? -1;
           case 'waitingHours':
@@ -298,8 +268,6 @@ export const VesselKpisDashboard: React.FC = () => {
             return item.totalVolumeTons;
           case 'totalOperationHours':
             return item.totalOperationHours;
-          case 'avgProductivityTph':
-            return item.avgProductivityTph ?? -1;
           case 'maxDwt':
             return item.maxDwt;
         }
@@ -330,11 +298,7 @@ export const VesselKpisDashboard: React.FC = () => {
   // Monthly chart scaling
   const monthlyChartMetrics = useMemo(() => {
     const values = monthlySeries.map((m) =>
-      chartMetric === 'productivity'
-        ? m.avgProductivityTph
-        : chartMetric === 'operationHours'
-        ? m.avgOperationHours
-        : m.avgWaitingHours
+      chartMetric === 'operationHours' ? m.avgOperationHours : m.avgWaitingHours
     );
     const maxVal = Math.max(...values, 1);
     const avgVal =
@@ -377,8 +341,6 @@ export const VesselKpisDashboard: React.FC = () => {
       'Espera_h',
       'Operacao_h',
       'Operacao_dias',
-      'Produtividade_t_h',
-      'Produtividade_t_dia',
       'Aproveitamento_DWT_pct',
       'Observacao',
     ];
@@ -397,8 +359,6 @@ export const VesselKpisDashboard: React.FC = () => {
       item.waitingHours !== null ? item.waitingHours.toFixed(2) : '',
       item.operationHours !== null ? item.operationHours.toFixed(2) : '',
       item.operationDays !== null ? item.operationDays.toFixed(2) : '',
-      item.productivityTph !== null ? item.productivityTph.toFixed(2) : '',
-      item.productivityTpd !== null ? Math.round(item.productivityTpd) : '',
       item.dwtUtilizationPct !== null ? item.dwtUtilizationPct.toFixed(1) : '',
       item.hasDateAnomaly ? `"${item.anomalyReason || 'Data divergente no PDF'}"` : '',
     ]);
@@ -513,18 +473,7 @@ export const VesselKpisDashboard: React.FC = () => {
         </div>
 
         {/* Benchmark Summary Strip (hairline separated, zero nested cards) */}
-        <div className="mt-4 pt-4 border-t border-slate-800 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div>
-            <p className="text-xs text-slate-400">Produtividade média geral</p>
-            <p className="mt-1 text-xl sm:text-2xl font-bold text-white font-mono tabular-nums">
-              {formatDecimalBR(summaryStats.avgProductivityTph, 1)}{' '}
-              <span className="text-xs font-medium text-cyan-400">t/h</span>
-            </p>
-            <p className="mt-0.5 text-xs text-slate-400 font-mono tabular-nums">
-              {formatIntegerBR(summaryStats.avgProductivityTpd)} t/dia em média
-            </p>
-          </div>
-
+        <div className="mt-4 pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <div>
             <p className="text-xs text-slate-400">Tempo médio de operação</p>
             <p className="mt-1 text-xl sm:text-2xl font-bold text-white font-mono tabular-nums">
@@ -560,51 +509,9 @@ export const VesselKpisDashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* 4 Primary Record Cards (Direct answers to productivity, longest time, most trips, highest DWT) */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
-        {/* 1. Top Productivity */}
-        <article className="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between gap-2 text-xs font-medium text-slate-400">
-              <span>Maior produtividade</span>
-              <Gauge className="w-4 h-4 text-emerald-400 shrink-0" />
-            </div>
-            {summaryStats.topProductivityCall ? (
-              <>
-                <h3 className="mt-2 text-base sm:text-lg font-bold text-white truncate">
-                  {summaryStats.topProductivityCall.record.vesselName}
-                </h3>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-bold text-emerald-400 font-mono tabular-nums">
-                    {formatDecimalBR(summaryStats.topProductivityCall.productivityTph, 1)}
-                  </span>
-                  <span className="text-xs font-medium text-slate-300">t/h</span>
-                </div>
-                <p className="mt-1 text-xs text-slate-300 font-mono tabular-nums">
-                  {formatIntegerBR(summaryStats.topProductivityCall.productivityTpd)} t/dia
-                </p>
-              </>
-            ) : (
-              <p className="mt-3 text-sm text-slate-400">Sem dados concluídos no filtro.</p>
-            )}
-          </div>
-          {summaryStats.topProductivityCall && (
-            <div className="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-              <span className="font-mono tabular-nums">
-                {formatIntegerBR(summaryStats.topProductivityCall.record.totalVolumeTons)} t
-              </span>
-              <span aria-hidden="true">·</span>
-              <span className="font-mono tabular-nums">
-                {formatDecimalBR(summaryStats.topProductivityCall.operationHours, 1)} h (
-                {formatDaysHours(summaryStats.topProductivityCall.operationHours)})
-              </span>
-              <span aria-hidden="true">·</span>
-              <span>{summaryStats.topProductivityCall.record.monthName}</span>
-            </div>
-          )}
-        </article>
-
-        {/* 2. Longest Operation Time (Hours & Days) */}
+      {/* 3 Primary Record Cards (Longest operation time, most trips, highest DWT) */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+        {/* 1. Longest Operation Time (Hours & Days) */}
         <article className="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 text-xs font-medium text-slate-400">
@@ -637,9 +544,7 @@ export const VesselKpisDashboard: React.FC = () => {
                 {formatIntegerBR(summaryStats.longestOperationCall.record.totalVolumeTons)} t
               </span>
               <span aria-hidden="true">·</span>
-              <span className="font-mono tabular-nums">
-                {formatDecimalBR(summaryStats.longestOperationCall.productivityTph, 1)} t/h
-              </span>
+              <span>{summaryStats.longestOperationCall.record.shipper}</span>
               <span aria-hidden="true">·</span>
               <span>{summaryStats.longestOperationCall.record.monthName}</span>
             </div>
@@ -750,17 +655,6 @@ export const VesselKpisDashboard: React.FC = () => {
               <div className="inline-flex items-center p-0.5 bg-slate-950 border border-slate-800 rounded-lg self-start">
                 <button
                   type="button"
-                  onClick={() => setChartMetric('productivity')}
-                  className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                    chartMetric === 'productivity'
-                      ? 'bg-slate-800 text-cyan-300'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Produtividade (t/h)
-                </button>
-                <button
-                  type="button"
                   onClick={() => setChartMetric('operationHours')}
                   className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
                     chartMetric === 'operationHours'
@@ -792,10 +686,6 @@ export const VesselKpisDashboard: React.FC = () => {
                     {activeHoveredMonthData.monthName}/2026
                   </span>
                   <span aria-hidden="true" className="text-slate-600">·</span>
-                  <span className="font-mono tabular-nums text-emerald-400">
-                    {formatDecimalBR(activeHoveredMonthData.avgProductivityTph, 1)} t/h
-                  </span>
-                  <span aria-hidden="true" className="text-slate-600">·</span>
                   <span className="font-mono tabular-nums text-amber-300">
                     {formatDecimalBR(activeHoveredMonthData.avgOperationHours, 1)} h operação
                   </span>
@@ -812,8 +702,7 @@ export const VesselKpisDashboard: React.FC = () => {
                 <span className="text-slate-400">
                   Média do período selecionado:{' '}
                   <strong className="text-slate-200 font-mono tabular-nums">
-                    {formatDecimalBR(monthlyChartMetrics.avgVal, 1)}{' '}
-                    {chartMetric === 'productivity' ? 't/h' : 'h'}
+                    {formatDecimalBR(monthlyChartMetrics.avgVal, 1)} h
                   </strong>
                 </span>
               )}
@@ -841,26 +730,20 @@ export const VesselKpisDashboard: React.FC = () => {
                 }}
               >
                 <span className="absolute right-0 -top-4 text-[10px] font-mono tabular-nums text-slate-400 bg-slate-900/90 px-1">
-                  Média {formatDecimalBR(monthlyChartMetrics.avgVal, 0)}
+                  Média {formatDecimalBR(monthlyChartMetrics.avgVal, 0)} h
                 </span>
               </div>
 
               <div className="grid grid-cols-6 sm:grid-cols-11 gap-1.5 sm:gap-2 items-end h-56 pt-6 pb-2">
                 {monthlySeries.map((item) => {
                   const val =
-                    chartMetric === 'productivity'
-                      ? item.avgProductivityTph
-                      : chartMetric === 'operationHours'
+                    chartMetric === 'operationHours'
                       ? item.avgOperationHours
                       : item.avgWaitingHours;
                   const heightPct = Math.max(8, (val / monthlyChartMetrics.maxVal) * 100);
                   const isSelected = selectedMonth === item.month;
                   const barColor =
-                    chartMetric === 'productivity'
-                      ? isSelected
-                        ? 'bg-emerald-400'
-                        : 'bg-cyan-500/85 hover:bg-emerald-400'
-                      : chartMetric === 'operationHours'
+                    chartMetric === 'operationHours'
                       ? isSelected
                         ? 'bg-amber-400'
                         : 'bg-amber-500/80 hover:bg-amber-400'
@@ -878,9 +761,7 @@ export const VesselKpisDashboard: React.FC = () => {
                       onMouseEnter={() => setHoveredMonth(item.month)}
                       onMouseLeave={() => setHoveredMonth(null)}
                       className="h-full flex flex-col items-center justify-end gap-1.5 group focus:outline-none"
-                      title={`${item.monthName}: ${formatDecimalBR(val, 1)} ${
-                        chartMetric === 'productivity' ? 't/h' : 'h'
-                      }`}
+                      title={`${item.monthName}: ${formatDecimalBR(val, 1)} h`}
                     >
                       <span className="text-[10px] font-mono tabular-nums text-slate-300 group-hover:text-white transition-colors">
                         {formatDecimalBR(val, 0)}
@@ -915,10 +796,9 @@ export const VesselKpisDashboard: React.FC = () => {
             <span className="text-xs text-slate-400 font-mono tabular-nums">Top 8</span>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-1 p-1 bg-slate-950 border border-slate-800 rounded-lg">
+          <div className="mt-3 grid grid-cols-3 gap-1 p-1 bg-slate-950 border border-slate-800 rounded-lg">
             {(
               [
-                { id: 'productivity', label: 'Produtiv.' },
                 { id: 'duration', label: 'Mais Tempo' },
                 { id: 'trips', label: 'Viagens' },
                 { id: 'dwt', label: 'Maior DWT' },
@@ -980,9 +860,7 @@ export const VesselKpisDashboard: React.FC = () => {
                       <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            rankingTab === 'productivity'
-                              ? 'bg-emerald-500'
-                              : rankingTab === 'duration'
+                            rankingTab === 'duration'
                               ? 'bg-amber-500'
                               : rankingTab === 'trips'
                               ? 'bg-cyan-500'
@@ -1006,7 +884,7 @@ export const VesselKpisDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span>Detalhamento de Produtividade</span>
+              <span>Detalhamento Operacional</span>
             </h3>
 
             <div className="inline-flex items-center p-0.5 bg-slate-950 border border-slate-800 rounded-lg">
@@ -1105,7 +983,7 @@ export const VesselKpisDashboard: React.FC = () => {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-3 px-3 font-semibold text-right">
+                  <th className="py-3 px-4 font-semibold text-right">
                     <button
                       type="button"
                       onClick={() => handleCallSort('operationHours')}
@@ -1115,117 +993,83 @@ export const VesselKpisDashboard: React.FC = () => {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-3 px-4 font-semibold text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleCallSort('productivityTph')}
-                      className="inline-flex items-center gap-1 hover:text-white ml-auto"
-                    >
-                      <span>Produtividade</span>
-                      <ArrowUpDown className="w-3 h-3" />
-                    </button>
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/70 text-xs">
                 {sortedCallsTable.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-10 text-center text-slate-400">
+                    <td colSpan={6} className="py-10 text-center text-slate-400">
                       Nenhuma escala concluída encontrada para os filtros atuais.
                     </td>
                   </tr>
                 ) : (
-                  sortedCallsTable.map((item) => {
-                    const aboveAvg =
-                      item.productivityTph !== null &&
-                      item.productivityTph >= summaryStats.avgProductivityTph;
-
-                    return (
-                      <tr
-                        key={item.record.id}
-                        className="hover:bg-slate-800/40 transition-colors"
-                      >
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-white">{item.record.vesselName}</div>
-                          <div className="text-[11px] text-slate-400 font-mono tabular-nums mt-0.5">
-                            {item.record.visitCode} · {item.record.shipper} · {item.record.trafficType}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-slate-300 whitespace-nowrap">
-                          <div>{item.record.monthName}</div>
-                          <div className="text-[11px] text-slate-500 font-mono tabular-nums">
-                            {item.record.etb.slice(0, 10)}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono tabular-nums">
-                          <div className="text-slate-200">{formatIntegerBR(item.record.dwt)}</div>
-                          <div className="text-[11px] text-slate-400">
-                            {formatDecimalBR(item.record.loaMeters, 1)} m
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono tabular-nums">
-                          <div className="font-semibold text-white">
-                            {formatIntegerBR(item.record.totalVolumeTons)}
-                          </div>
-                          <div className="text-[11px] text-slate-400">
-                            {formatDecimalBR(item.dwtUtilizationPct, 1)}% DWT
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono tabular-nums">
-                          <div className="text-slate-200">
-                            {item.waitingHours !== null
-                              ? `${formatDecimalBR(item.waitingHours, 1)} h`
-                              : '—'}
-                          </div>
-                          <div className="text-[11px] text-slate-500">
-                            {formatDaysHours(item.waitingHours)}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono tabular-nums">
-                          {item.hasDateAnomaly ? (
-                            <span
-                              className="text-amber-400"
-                              title={item.anomalyReason}
-                            >
-                              Data PDF divergente
-                            </span>
-                          ) : (
-                            <>
-                              <div className="text-slate-100 font-medium">
-                                {formatDecimalBR(item.operationHours, 1)} h
-                              </div>
-                              <div className="text-[11px] text-slate-400">
-                                {formatDaysHours(item.operationHours)}
-                              </div>
-                            </>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-right font-mono tabular-nums">
-                          {item.hasDateAnomaly ? (
-                            <span className="text-slate-500">—</span>
-                          ) : (
-                            <>
-                              <div
-                                className={`font-bold ${
-                                  aboveAvg ? 'text-emerald-400' : 'text-slate-200'
-                                }`}
-                              >
-                                {formatDecimalBR(item.productivityTph, 1)} t/h
-                              </div>
-                              <div className="text-[11px] text-slate-400">
-                                {formatIntegerBR(item.productivityTpd)} t/dia
-                              </div>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
+                  sortedCallsTable.map((item) => (
+                    <tr
+                      key={item.record.id}
+                      className="hover:bg-slate-800/40 transition-colors"
+                    >
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-white">{item.record.vesselName}</div>
+                        <div className="text-[11px] text-slate-400 font-mono tabular-nums mt-0.5">
+                          {item.record.visitCode} · {item.record.shipper} · {item.record.trafficType}
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-slate-300 whitespace-nowrap">
+                        <div>{item.record.monthName}</div>
+                        <div className="text-[11px] text-slate-500 font-mono tabular-nums">
+                          {item.record.etb.slice(0, 10)}
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono tabular-nums">
+                        <div className="text-slate-200">{formatIntegerBR(item.record.dwt)}</div>
+                        <div className="text-[11px] text-slate-400">
+                          {formatDecimalBR(item.record.loaMeters, 1)} m
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono tabular-nums">
+                        <div className="font-semibold text-white">
+                          {formatIntegerBR(item.record.totalVolumeTons)}
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          {formatDecimalBR(item.dwtUtilizationPct, 1)}% DWT
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono tabular-nums">
+                        <div className="text-slate-200">
+                          {item.waitingHours !== null
+                            ? `${formatDecimalBR(item.waitingHours, 1)} h`
+                            : '—'}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {formatDaysHours(item.waitingHours)}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono tabular-nums">
+                        {item.hasDateAnomaly ? (
+                          <span
+                            className="text-amber-400"
+                            title={item.anomalyReason}
+                          >
+                            Data PDF divergente
+                          </span>
+                        ) : (
+                          <>
+                            <div className="text-slate-100 font-medium">
+                              {formatDecimalBR(item.operationHours, 1)} h
+                            </div>
+                            <div className="text-[11px] text-slate-400">
+                              {formatDaysHours(item.operationHours)}
+                            </div>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[780px]">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="border-b border-slate-800 bg-slate-950/60 text-xs text-slate-400">
                   <th className="py-3 px-4 font-semibold">Navio</th>
@@ -1259,7 +1103,7 @@ export const VesselKpisDashboard: React.FC = () => {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-3 px-3 font-semibold text-right">
+                  <th className="py-3 px-4 font-semibold text-right">
                     <button
                       type="button"
                       onClick={() => handleFleetSort('totalOperationHours')}
@@ -1269,22 +1113,12 @@ export const VesselKpisDashboard: React.FC = () => {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-3 px-4 font-semibold text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleFleetSort('avgProductivityTph')}
-                      className="inline-flex items-center gap-1 hover:text-white ml-auto"
-                    >
-                      <span>Produtividade Média</span>
-                      <ArrowUpDown className="w-3 h-3" />
-                    </button>
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/70 text-xs">
                 {sortedFleetTable.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-slate-400">
+                    <td colSpan={5} className="py-10 text-center text-slate-400">
                       Nenhum navio encontrado para os filtros atuais.
                     </td>
                   </tr>
@@ -1327,7 +1161,7 @@ export const VesselKpisDashboard: React.FC = () => {
                             : '—'}
                         </div>
                       </td>
-                      <td className="py-3 px-3 text-right font-mono tabular-nums">
+                      <td className="py-3 px-4 text-right font-mono tabular-nums">
                         {vessel.validTimedTrips > 0 ? (
                           <>
                             <div className="text-slate-100 font-medium">
@@ -1336,26 +1170,6 @@ export const VesselKpisDashboard: React.FC = () => {
                             <div className="text-[11px] text-slate-400">
                               {formatDaysHours(vessel.totalOperationHours)} · média{' '}
                               {formatDecimalBR(vessel.avgOperationHours, 1)} h
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-slate-500">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono tabular-nums">
-                        {vessel.avgProductivityTph !== null ? (
-                          <>
-                            <div
-                              className={`font-bold ${
-                                vessel.avgProductivityTph >= summaryStats.avgProductivityTph
-                                  ? 'text-emerald-400'
-                                  : 'text-slate-200'
-                              }`}
-                            >
-                              {formatDecimalBR(vessel.avgProductivityTph, 1)} t/h
-                            </div>
-                            <div className="text-[11px] text-slate-400">
-                              {formatIntegerBR(vessel.avgProductivityTpd)} t/dia
                             </div>
                           </>
                         ) : (
@@ -1379,7 +1193,7 @@ export const VesselKpisDashboard: React.FC = () => {
               {anomalousCalls.length === 1 ? 'escala' : 'escalas'} (
               {anomalousCalls.map((c) => `${c.record.vesselName} · ${c.record.visitCode}`).join(', ')}
               ) possui data de ETD divergente no PDF oficial da Intersal e foi desconsiderada
-              automaticamente das médias de tempo e produtividade para manter a precisão dos KPIs.
+              automaticamente das médias de tempo para manter a precisão dos KPIs.
             </p>
           </div>
         )}

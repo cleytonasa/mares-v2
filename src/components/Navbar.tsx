@@ -148,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="nav-tab-kpis"
                 onClick={() => onChangeTab('kpis')}
-                title="KPIs e Produtividade de Navios"
+                title="KPIs Operacionais de Navios"
                 className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10.5px] sm:text-xs font-medium transition flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === 'kpis'
                     ? 'bg-slate-800 text-cyan-300 font-semibold border border-cyan-500/40 shadow-sm'
