@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Novembro de 2026
-// Atualizado em: 20/11/2026 18:23
+// Atualizado em: 25/11/2026 17:08
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -959,8 +959,8 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "dwt": 44523,
     "eta": "17/11/2026 14:10",
     "etb": "18/11/2026 15:55",
-    "etd": "25/11/2026 15:00",
-    "status": "Em operação",
+    "etd": "25/11/2026 13:30",
+    "status": "Concluído",
     "scVolumeTons": 16900,
     "sqVolumeTons": 26400,
     "totalVolumeTons": 43300,
@@ -977,7 +977,7 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "vesselName": "FRIENDRICH SCHULTE",
     "loaMeters": 179.95,
     "dwt": 39851,
-    "eta": "25/11/2026 04:00",
+    "eta": "24/11/2026 21:40",
     "etb": "26/11/2026 08:00",
     "etd": "29/11/2026 13:00",
     "status": "Previsto",
@@ -1250,50 +1250,50 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "shortMonth": "Nov",
     "year": 2026,
     "vesselCount": 4,
-    "concludedCount": 2,
-    "operatingCount": 1,
+    "concludedCount": 3,
+    "operatingCount": 0,
     "confirmedCount": 0,
     "plannedCount": 1,
-    "concludedTotalVolume": 85644,
-    "concludedScTotal": 52444,
-    "concludedSqTotal": 33200,
+    "concludedTotalVolume": 128944,
+    "concludedScTotal": 69344,
+    "concludedSqTotal": 59600,
     "scTotal": 106746,
     "sqTotal": 59600,
     "totalVolume": 166346,
     "salinorVolume": 128944,
     "sdbVolume": 37402,
-    "salinorConcludedVolume": 85644,
+    "salinorConcludedVolume": 128944,
     "sdbConcludedVolume": 0,
     "expVolume": 84846,
     "cbtVolume": 81500,
     "expConcludedVolume": 47444,
-    "cbtConcludedVolume": 38200
+    "cbtConcludedVolume": 81500
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '20/11/2026 18:23';
+export const LINEUP_LAST_UPDATED = '25/11/2026 17:08';
 
 export const OVERALL_TOTALS = {
-  "concludedTotalTons": 1576923,
-  "concludedScTotalTons": 1305570,
-  "concludedSqTotalTons": 271353,
-  "concludedVessels": 45,
-  "concludedSalinorTons": 1367073,
+  "concludedTotalTons": 1620223,
+  "concludedScTotalTons": 1322470,
+  "concludedSqTotalTons": 297753,
+  "concludedVessels": 46,
+  "concludedSalinorTons": 1410373,
   "concludedSdbTons": 209850,
   "concludedExpTons": 944890,
-  "concludedCbtTons": 632033,
-  "totalTons": 1576923,
-  "scTotalTons": 1305570,
-  "sqTotalTons": 271353,
-  "totalVessels": 45,
-  "salinorTotalTons": 1367073,
+  "concludedCbtTons": 675333,
+  "totalTons": 1620223,
+  "scTotalTons": 1322470,
+  "sqTotalTons": 297753,
+  "totalVessels": 46,
+  "salinorTotalTons": 1410373,
   "sdbTotalTons": 209850,
   "expTotalTons": 944890,
-  "cbtTotalTons": 632033,
-  "monthlyAverageTons": 143357,
-  "vesselAverageTons": 35043,
-  "operatingTotalTons": 43300,
-  "operatingVessels": 1,
+  "cbtTotalTons": 675333,
+  "monthlyAverageTons": 147293,
+  "vesselAverageTons": 35222,
+  "operatingTotalTons": 0,
+  "operatingVessels": 0,
   "confirmedVessels": 0,
   "plannedTotalTons": 37402,
   "plannedVessels": 1,
