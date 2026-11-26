@@ -1,6 +1,6 @@
 // Oficial Line-Up & Histórico de Embarque de Sal a Granel - INTERSAL (TERMISA)
 // Período: Janeiro a Novembro de 2026
-// Atualizado em: 25/11/2026 17:08
+// Atualizado em: 26/11/2026 09:24
 // Gerado automaticamente via sincronizador Intersal
 
 export interface SaltVesselRecord {
@@ -978,9 +978,9 @@ export const SALT_SHIPMENTS_2026: SaltVesselRecord[] = [
     "loaMeters": 179.95,
     "dwt": 39851,
     "eta": "24/11/2026 21:40",
-    "etb": "26/11/2026 08:00",
+    "etb": "26/11/2026 08:12",
     "etd": "29/11/2026 13:00",
-    "status": "Previsto",
+    "status": "Em operação",
     "scVolumeTons": 37402,
     "sqVolumeTons": 0,
     "totalVolumeTons": 37402,
@@ -1251,9 +1251,9 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
     "year": 2026,
     "vesselCount": 4,
     "concludedCount": 3,
-    "operatingCount": 0,
+    "operatingCount": 1,
     "confirmedCount": 0,
-    "plannedCount": 1,
+    "plannedCount": 0,
     "concludedTotalVolume": 128944,
     "concludedScTotal": 69344,
     "concludedSqTotal": 59600,
@@ -1271,7 +1271,7 @@ export const MONTHLY_SALT_SUMMARIES: MonthlySaltSummary[] = [
   }
 ];
 
-export const LINEUP_LAST_UPDATED = '25/11/2026 17:08';
+export const LINEUP_LAST_UPDATED = '26/11/2026 09:24';
 
 export const OVERALL_TOTALS = {
   "concludedTotalTons": 1620223,
@@ -1292,11 +1292,11 @@ export const OVERALL_TOTALS = {
   "cbtTotalTons": 675333,
   "monthlyAverageTons": 147293,
   "vesselAverageTons": 35222,
-  "operatingTotalTons": 0,
-  "operatingVessels": 0,
+  "operatingTotalTons": 37402,
+  "operatingVessels": 1,
   "confirmedVessels": 0,
-  "plannedTotalTons": 37402,
-  "plannedVessels": 1,
+  "plannedTotalTons": 0,
+  "plannedVessels": 0,
   "totalProgrammedTons": 1657625
 };
 
